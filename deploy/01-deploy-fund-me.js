@@ -1,4 +1,4 @@
-// Directly get the networkConfig from the helper-hardhat-config file
+// Directly get the networkConfig from the helper-hardhat-config.js file
 // This works because that specific module was exported
 const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 // This is the same as:

@@ -159,7 +159,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       signer
                   )
                   const tx = fakeDemoContract[nonExistentFuncSignature](1, 2)
-
                   // Solution from: https://stackoverflow.com/questions/72584559/how-to-test-the-solidity-fallback-function-via-hardhat
                   // Not sure what to actually check at this point as waiting for the tx to return
                   // throws a gas error that I don't know how to parse

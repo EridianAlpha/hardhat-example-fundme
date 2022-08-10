@@ -15,10 +15,8 @@ contract FundMeMatching is FundMe {
     constructor(address priceFeedAddress) FundMe(priceFeedAddress) {}
 
     function fund() public payable override {
-        require(
-            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
-            "You need to spend more ETH!"
-        );
+        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
+            revert FundMe__NotEnoughEthSent();
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
     }

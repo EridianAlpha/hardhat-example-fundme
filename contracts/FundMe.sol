@@ -8,7 +8,6 @@ import "hardhat/console.sol";
 
 // Error codes
 error FundMe__NotOwner();
-error FundMe__EmptyWithdraw();
 error FundMe__WithdrawFailed();
 error FundMe__NotEnoughEthSent();
 
@@ -80,7 +79,7 @@ contract FundMe {
     }
 
     /** @notice Function for sending funds to the contract
-     *  @dev This implements price feeds as our library
+     *  @dev This implements price feeds as a library
      */
     function fund() public payable virtual {
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
