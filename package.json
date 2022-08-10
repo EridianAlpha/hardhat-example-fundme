@@ -22,6 +22,8 @@
     "solidity-coverage": "^0.7.16"
   },
   "scripts": {
+    "clean": "yarn hardhat clean",
+    "compile": "yarn hardhat compile",
     "format": "yarn prettier --write .",
     "lint": "yarn solhint 'contracts/*.sol'",
     "lint:fix": "yarn solhint 'contracts/*.sol' --fix",

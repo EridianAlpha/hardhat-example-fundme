@@ -1,4 +1,12 @@
 {
     "cSpell.enableFiletypes": ["solidity"],
-    "cSpell.words": ["chainlink", "entrancy", "Eridian", "funder", "funders"]
+    "cSpell.words": [
+        "chainlink",
+        "entrancy",
+        "Eridian",
+        "funder",
+        "funders",
+        "nomiclabs",
+        "solhint"
+    ]
 }
