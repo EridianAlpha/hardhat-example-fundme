@@ -9,7 +9,7 @@ contract FundMeMatching is FundMe {
 
     /**
      * This is how to create a constructor for an inherited contract
-     * if the parent already has a contructor that has arguments passed
+     * if the parent already has a constructor that has arguments passed
      * https://docs.soliditylang.org/en/develop/contracts.html#arguments-for-base-constructors
      */
     constructor(address priceFeedAddress) FundMe(priceFeedAddress) {}

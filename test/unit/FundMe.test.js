@@ -12,9 +12,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
           const sendValue = ethers.utils.parseEther("1")
 
           beforeEach(async function () {
-              // const accounts = await ethers.getSigners()
-              // const accountZero = accounts[0]
-
               deployer = (await getNamedAccounts()).deployer
               await deployments.fixture(["fundMe", "mocks"])
               fundMe = await ethers.getContract("FundMe", deployer)
@@ -56,94 +53,6 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   await fundMe.fund({ value: sendValue })
               })
 
-              it("Withdraw when empty throws error", async function () {
-                  await fundMe.withdraw()
-                  const fundMeBalance = await fundMe.provider.getBalance(
-                      fundMe.address
-                  )
-                  assert.equal(fundMeBalance, 0)
-                  await expect(fundMe.withdraw()).to.be.revertedWith(
-                      "FundMe__EmptyWithdraw"
-                  )
-              })
-
-              it("Withdraw ETH from a single funder", async function () {
-                  // Arrange
-                  const startingFundMeBalance =
-                      await fundMe.provider.getBalance(fundMe.address)
-                  const startingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-
-                  // Act
-                  const transactionResponse = await fundMe.withdraw()
-                  const transactionReceipt = await transactionResponse.wait(1)
-                  const { gasUsed, effectiveGasPrice } = transactionReceipt // This notation is used to pull out objects from another object
-                  const gasCost = gasUsed.mul(effectiveGasPrice)
-
-                  const endingFundMeBalance = await fundMe.provider.getBalance(
-                      fundMe.address
-                  )
-                  const endingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-
-                  // Assert
-                  assert.equal(endingFundMeBalance, 0)
-                  assert.equal(
-                      startingFundMeBalance
-                          .add(startingDeployerBalance)
-                          .toString(),
-                      endingDeployerBalance.add(gasCost).toString()
-                  )
-              })
-
-              it("Withdraw ETH from multiple getFunder", async function () {
-                  // Arrange
-                  const accounts = await ethers.getSigners()
-                  const funderCount = 5
-                  for (let i = 0; i < funderCount; i++) {
-                      const fundMeConnectedContract = await fundMe.connect(
-                          accounts[i]
-                      )
-                      await fundMeConnectedContract.fund({ value: sendValue })
-                  }
-                  const startingFundMeBalance =
-                      await fundMe.provider.getBalance(fundMe.address)
-                  const startingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-
-                  // Act
-                  const transactionResponse = await fundMe.withdraw()
-                  const transactionReceipt = await transactionResponse.wait(1)
-                  const { gasUsed, effectiveGasPrice } = transactionReceipt
-                  const gasCost = gasUsed.mul(effectiveGasPrice)
-
-                  const endingFundMeBalance = await fundMe.provider.getBalance(
-                      fundMe.address
-                  )
-                  const endingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-
-                  // Assert
-                  assert.equal(endingFundMeBalance, 0)
-                  assert.equal(
-                      startingFundMeBalance
-                          .add(startingDeployerBalance)
-                          .toString(),
-                      endingDeployerBalance.add(gasCost).toString()
-                  )
-
-                  // Make sure that the getFunder are reset properly
-                  await expect(fundMe.getFunder(0)).to.be.reverted
-                  for (i = 0; i < funderCount; i++) {
-                      assert.equal(
-                          await fundMe.getAddressToAmountFunded(
-                              accounts[i].address
-                          ),
-                          0
-                      )
-                  }
-              })
-
               it("Only allows the owner to withdraw", async function () {
                   const accounts = await ethers.getSigners()
                   const attacker = accounts[1]
@@ -155,35 +64,18 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   ).to.be.revertedWith("FundMe__NotOwner")
               })
 
-              it("cheaperWithdraw single testing...", async function () {
-                  // Arrange
-                  const startingFundMeBalance =
-                      await fundMe.provider.getBalance(fundMe.address)
-                  const startingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-                  // Act
-                  const transactionResponse = await fundMe.cheaperWithdraw()
-                  const transactionReceipt = await transactionResponse.wait(1)
-                  const { gasUsed, effectiveGasPrice } = transactionReceipt // This notation is used to pull out objects from another object
-                  const gasCost = gasUsed.mul(effectiveGasPrice)
-
-                  const endingFundMeBalance = await fundMe.provider.getBalance(
-                      fundMe.address
+              it("Withdraw .call failure throws error", async function () {
+                  const testHelperFactory = await ethers.getContractFactory(
+                      "TestHelper"
                   )
-                  const endingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
-
-                  // Assert
-                  assert.equal(endingFundMeBalance, 0)
-                  assert.equal(
-                      startingFundMeBalance
-                          .add(startingDeployerBalance)
-                          .toString(),
-                      endingDeployerBalance.add(gasCost).toString()
+                  testHelper = await testHelperFactory.deploy()
+                  await testHelper.deployed()
+                  await expect(testHelper.fundMeWithdraw()).to.be.revertedWith(
+                      "FundMe__WithdrawFailed"
                   )
               })
 
-              it("cheaperWithdraw multi testing...", async function () {
+              it("Withdraw ETH from multiple funders", async function () {
                   // Arrange
                   const accounts = await ethers.getSigners()
                   const funderCount = 5
@@ -199,7 +91,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       await fundMe.provider.getBalance(deployer)
 
                   // Act
-                  const transactionResponse = await fundMe.cheaperWithdraw()
+                  const transactionResponse = await fundMe.withdraw()
                   const transactionReceipt = await transactionResponse.wait(1)
                   const { gasUsed, effectiveGasPrice } = transactionReceipt
                   const gasCost = gasUsed.mul(effectiveGasPrice)
@@ -219,8 +111,10 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       endingDeployerBalance.add(gasCost).toString()
                   )
 
-                  // Make sure that the getFunder are reset properly
+                  // Check that s_funders is reset properly
                   await expect(fundMe.getFunder(0)).to.be.reverted
+
+                  // Check that s_addressToAmountFunded mapping is reset for all addresses
                   for (i = 0; i < funderCount; i++) {
                       assert.equal(
                           await fundMe.getAddressToAmountFunded(
@@ -234,7 +128,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
 
           describe("getters", async function () {
               it("Gets s_priceFeed version correctly", async function () {
-                  const response = await fundMe.getVersion()
+                  const response = await fundMe.getPriceFeedVersion()
                   const version = await mockV3Aggregator.version()
                   assert.equal(response.toString(), version.toString())
               })

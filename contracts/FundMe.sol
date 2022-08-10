@@ -9,6 +9,7 @@ import "hardhat/console.sol";
 // Error codes
 error FundMe__NotOwner();
 error FundMe__EmptyWithdraw();
+error FundMe__WithdrawFailed();
 error FundMe__NotEnoughEthSent();
 
 /** @title A contract for crowd funding
@@ -29,8 +30,7 @@ contract FundMe {
 
     // Modifiers
     modifier onlyOwner() {
-        // require(msg.sender == i_owner); // Uses more gas as requires a custom error to be stored
-        if (msg.sender != i_owner) revert FundMe__NotOwner(); // Uses less gas as the error is not stored as a string
+        if (msg.sender != i_owner) revert FundMe__NotOwner();
         _;
     }
 
@@ -48,7 +48,7 @@ contract FundMe {
 
     constructor(address priceFeedAddress) {
         /**
-         * Initialise the contract owner as the deployer address.
+         * Initialize the contract owner as the deployer address.
          * The i_ shows that this is an immutable variable,
          * as it is only set here inside the constructor and then never changed again.
          * Not great for a design if you do want to change the owner in future, but shows how immutable variables work.
@@ -90,54 +90,15 @@ contract FundMe {
         s_funders.push(msg.sender);
     }
 
-    /** @notice Function for getting priceFeed version
-     *  @dev // TODO
-     */
-    function getVersion() public view returns (uint256) {
-        // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
-        return s_priceFeed.version();
-    }
-
     /** @notice Function for withdrawing funds from the contract
-     *  @dev // TODO
+     *  @dev // TODO withdraw()
      */
     function withdraw() public payable onlyOwner {
-        // Check to make sure that the wallet isn't empty before starting withdrawal
-        // This should save gas?
-        if (address(this).balance == 0) revert FundMe__EmptyWithdraw();
+        // TODO Add Re-entrancy Guard
 
         // Loop through all funder addresses and reset the funded value to 0
-        // Could just re-initialize the whole array as with s_funders below, but this shows another method
-        for (
-            uint256 funderIndex = 0;
-            funderIndex < s_funders.length;
-            funderIndex++
-        ) {
-            address funder = s_funders[funderIndex];
-            s_addressToAmountFunded[funder] = 0;
-        }
-
-        // Reset the s_funders array to an empty array
-        s_funders = new address[](0);
-
-        // Transfer - 1st Withdrawal Option
-        // payable(msg.sender).transfer(address(this).balance);
-
-        // Send - 2nd Withdrawal Option
-        // bool sendSuccess = payable(msg.sender).send(address(this).balance);
-        // require(sendSuccess, "Send failed");
-
-        // Call - 3rd Withdrawal Option
-        // TODO Add Re-entrancy Guard
-        (bool callSuccess, ) = payable(msg.sender).call{
-            value: address(this).balance
-        }("");
-        require(callSuccess, "Call failed");
-    }
-
-    function cheaperWithdraw() public payable onlyOwner {
         address[] memory funders = s_funders;
-        // Mappings can't be in memony, sorry!
+        // Mappings can't be in memory, sorry!
         for (
             uint256 funderIndex = 0;
             funderIndex < funders.length;
@@ -146,9 +107,21 @@ contract FundMe {
             address funder = funders[funderIndex];
             s_addressToAmountFunded[funder] = 0;
         }
+
+        // Reset the s_funders array to an empty array
         s_funders = new address[](0);
+
+        // TODO Test for call failing
         (bool callSuccess, ) = i_owner.call{ value: address(this).balance }("");
-        require(callSuccess, "Call failed");
+        if (!callSuccess) revert FundMe__WithdrawFailed();
+    }
+
+    /** @notice Function for getting priceFeed version
+     *  @dev // TODO getPriceFeedVersion()
+     */
+    function getPriceFeedVersion() public view returns (uint256) {
+        // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+        return s_priceFeed.version();
     }
 
     /** @notice Getter function for the contract owner
@@ -159,7 +132,7 @@ contract FundMe {
     }
 
     /** @notice Getter function for a specific funder based on their index in the s_funders array
-     *  @dev // TODO Not sure why this would be used as public users don't care about the address at a specific index
+     *  @dev Allow public users to get list of all funders by iterating through the array
      */
     function getFunder(uint256 index) public view returns (address) {
         return s_funders[index];
