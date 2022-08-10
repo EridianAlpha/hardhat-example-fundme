@@ -61,8 +61,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   const fundMeBalance = await fundMe.provider.getBalance(
                       fundMe.address
                   )
-                  assert.equal(fundMeBalance.toString(), "0")
-
+                  assert.equal(fundMeBalance, 0)
                   await expect(fundMe.withdraw()).to.be.revertedWith(
                       "FundMe__EmptyWithdraw"
                   )
@@ -74,6 +73,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       await fundMe.provider.getBalance(fundMe.address)
                   const startingDeployerBalance =
                       await fundMe.provider.getBalance(deployer)
+
                   // Act
                   const transactionResponse = await fundMe.withdraw()
                   const transactionReceipt = await transactionResponse.wait(1)
@@ -99,7 +99,8 @@ const { developmentChains } = require("../../helper-hardhat-config")
               it("Withdraw ETH from multiple getFunder", async function () {
                   // Arrange
                   const accounts = await ethers.getSigners()
-                  for (let i = 0; i < 5; i++) {
+                  const funderCount = 5
+                  for (let i = 0; i < funderCount; i++) {
                       const fundMeConnectedContract = await fundMe.connect(
                           accounts[i]
                       )
@@ -133,7 +134,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
 
                   // Make sure that the getFunder are reset properly
                   await expect(fundMe.getFunder(0)).to.be.reverted
-                  for (i = 0; i < 5; i++) {
+                  for (i = 0; i < funderCount; i++) {
                       assert.equal(
                           await fundMe.getAddressToAmountFunded(
                               accounts[i].address
@@ -185,7 +186,8 @@ const { developmentChains } = require("../../helper-hardhat-config")
               it("cheaperWithdraw multi testing...", async function () {
                   // Arrange
                   const accounts = await ethers.getSigners()
-                  for (let i = 0; i < 5; i++) {
+                  const funderCount = 5
+                  for (let i = 0; i < funderCount; i++) {
                       const fundMeConnectedContract = await fundMe.connect(
                           accounts[i]
                       )
@@ -219,7 +221,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
 
                   // Make sure that the getFunder are reset properly
                   await expect(fundMe.getFunder(0)).to.be.reverted
-                  for (i = 0; i < 5; i++) {
+                  for (i = 0; i < funderCount; i++) {
                       assert.equal(
                           await fundMe.getAddressToAmountFunded(
                               accounts[i].address
