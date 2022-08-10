@@ -34,7 +34,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
           describe("fund", async function () {
               it("Fails if you don't send enough ETH", async function () {
                   await expect(fundMe.fund()).to.be.revertedWith(
-                      "You need to spend more ETH!"
+                      "FundMe__NotEnoughEthSent"
                   )
               })
               it("Updates the amount funded data structure", async function () {
@@ -57,11 +57,15 @@ const { developmentChains } = require("../../helper-hardhat-config")
               })
 
               it("Withdraw when empty throws error", async function () {
-                  console.log(
-                      "await fundMe.provider.getBalance(fundMe.address): " +
-                          (await fundMe.provider.getBalance(fundMe.address))
+                  await fundMe.withdraw()
+                  const fundMeBalance = await fundMe.provider.getBalance(
+                      fundMe.address
                   )
-                  const transactionResponse = await fundMe.withdraw()
+                  assert.equal(fundMeBalance.toString(), "0")
+
+                  await expect(fundMe.withdraw()).to.be.revertedWith(
+                      "FundMe__EmptyWithdraw"
+                  )
               })
 
               it("Withdraw ETH from a single funder", async function () {

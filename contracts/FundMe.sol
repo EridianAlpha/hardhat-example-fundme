@@ -9,6 +9,7 @@ import "hardhat/console.sol";
 // Error codes
 error FundMe__NotOwner();
 error FundMe__EmptyWithdraw();
+error FundMe__NotEnoughEthSent();
 
 /** @title A contract for crowd funding
  *  @author EridianAlpha
@@ -82,17 +83,9 @@ contract FundMe {
      *  @dev This implements price feeds as our library
      */
     function fund() public payable virtual {
-        // console.log("msg.value", msg.value);
-        // console.log(
-        //     "msg.value.getConversionRate(s_priceFeed)",
-        //     msg.value.getConversionRate(s_priceFeed)
-        // );
-        // console.log("MINIMUM_USD", MINIMUM_USD);
-        require(
-            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
-            "You need to spend more ETH!"
-        );
-        // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
+        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
+            revert FundMe__NotEnoughEthSent();
+
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
     }
@@ -109,6 +102,10 @@ contract FundMe {
      *  @dev // TODO
      */
     function withdraw() public payable onlyOwner {
+        // Check to make sure that the wallet isn't empty before starting withdrawal
+        // This should save gas?
+        if (address(this).balance == 0) revert FundMe__EmptyWithdraw();
+
         // Loop through all funder addresses and reset the funded value to 0
         // Could just re-initialize the whole array as with s_funders below, but this shows another method
         for (

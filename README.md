@@ -1,6 +1,6 @@
 # Template - Hardhat
 
-This repo is a template for starting a new HardHat project.
+This repo is a template for starting a new Hardhat project.
 <br/>
 <br/>
 
