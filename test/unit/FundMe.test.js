@@ -1,6 +1,6 @@
-const { deployments, ethers, getNamedAccounts } = require("hardhat")
 const { assert, expect } = require("chai")
 const { developmentChains } = require("../../helper-hardhat-config")
+const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
 !developmentChains.includes(network.name)
     ? describe.skip
@@ -41,19 +41,22 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   )
                   assert.equal(response.toString(), sendValue.toString())
               })
-              it("Adds funder to array of getFunder", async function () {
+              it("Checks funder added to s_funders array", async function () {
                   await fundMe.fund({ value: sendValue })
-                  const funder = await fundMe.getFunder(0)
+                  const response = await fundMe.getFunderIndex(deployer)
+                  assert.equal(response.toString(), 0)
+              })
+              it("Checks funder address matches 0 index of s_funders array", async function () {
+                  await fundMe.fund({ value: sendValue })
+                  const funder = await fundMe.getFunderAddress(0)
                   assert.equal(funder, deployer)
               })
           })
 
           describe("withdraw", async function () {
-              beforeEach(async function () {
-                  await fundMe.fund({ value: sendValue })
-              })
-
               it("Only allows the owner to withdraw", async function () {
+                  await fundMe.fund({ value: sendValue })
+
                   const accounts = await ethers.getSigners()
                   const attacker = accounts[1]
                   const attackerConnectedContract = await fundMe.connect(
@@ -64,12 +67,29 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   ).to.be.revertedWith("FundMe__NotOwner")
               })
 
+              it("Withdraw call with zero balance fails", async function () {
+                  await expect(fundMe.withdraw()).to.be.revertedWith(
+                      "FundMe__WithdrawNoFunds"
+                  )
+              })
+
               it("Withdraw .call failure throws error", async function () {
+                  // Deploy helper contract
                   const testHelperFactory = await ethers.getContractFactory(
                       "TestHelper"
                   )
                   testHelper = await testHelperFactory.deploy()
                   await testHelper.deployed()
+
+                  // Send funds to helper contract that can be use for the fund() function
+                  await testHelper.initialFunding({
+                      value: ethers.utils.parseEther("5"),
+                  })
+
+                  // Send funds from helper contract to FundMe contract
+                  // so that this test passes the WithdrawEmpty test
+                  await testHelper.fundMeFund(sendValue)
+
                   await expect(testHelper.fundMeWithdraw()).to.be.revertedWith(
                       "FundMe__WithdrawFailed"
                   )
@@ -112,7 +132,7 @@ const { developmentChains } = require("../../helper-hardhat-config")
                   )
 
                   // Check that s_funders is reset properly
-                  await expect(fundMe.getFunder(0)).to.be.reverted
+                  await expect(fundMe.getFunderAddress(0)).to.be.reverted
 
                   // Check that s_addressToAmountFunded mapping is reset for all addresses
                   for (i = 0; i < funderCount; i++) {
@@ -123,6 +143,97 @@ const { developmentChains } = require("../../helper-hardhat-config")
                           0
                       )
                   }
+              })
+          })
+
+          describe("refund", async function () {
+              beforeEach(async function () {
+                  // Send first value as the deployer
+                  await fundMe.fund({ value: sendValue })
+              })
+
+              it("Funder can refund their funds", async function () {
+                  // Arrange
+
+                  // Send second value as funder2
+                  const accounts = await ethers.getSigners()
+                  const funder2 = accounts[1]
+                  const funder2ConnectedContract = await fundMe.connect(funder2)
+                  await funder2ConnectedContract.fund({ value: sendValue })
+
+                  const funder = await fundMe.getFunderAddress(0)
+                  const startingFundMeBalance =
+                      await fundMe.provider.getBalance(fundMe.address)
+                  const startingFunderBalance =
+                      await fundMe.provider.getBalance(funder)
+
+                  // Act
+                  const transactionResponse = await fundMe.refund()
+                  const transactionReceipt = await transactionResponse.wait(1)
+                  const { gasUsed, effectiveGasPrice } = transactionReceipt
+                  const gasCost = gasUsed.mul(effectiveGasPrice)
+
+                  const endingFundMeBalance = await fundMe.provider.getBalance(
+                      fundMe.address
+                  )
+                  const endingFunderBalance = await fundMe.provider.getBalance(
+                      funder
+                  )
+
+                  // Assert
+
+                  // Check that balances add up before and after
+                  assert.equal(
+                      startingFundMeBalance
+                          .add(startingFunderBalance)
+                          .toString(),
+                      endingFundMeBalance
+                          .add(endingFunderBalance)
+                          .add(gasCost)
+                          .toString()
+                  )
+
+                  // Check funder amount has been reset to 0
+                  assert.equal(await fundMe.getAddressToAmountFunded(funder), 0)
+
+                  // Check funder has been removed from the s_funders index
+                  await expect(
+                      fundMe.getFunderIndex(funder)
+                  ).to.be.revertedWith("FundMe__IndexNotFound")
+              })
+
+              it("Refund call with zero balance fails", async function () {
+                  const accounts = await ethers.getSigners()
+                  const noneFunder = accounts[1]
+                  const noneFunderConnectedContract = await fundMe.connect(
+                      noneFunder
+                  )
+
+                  await expect(
+                      noneFunderConnectedContract.refund()
+                  ).to.be.revertedWith("FundMe__RefundNoFunds")
+              })
+
+              it("Refund .call failure throws error", async function () {
+                  // Deploy helper contract
+                  const testHelperFactory = await ethers.getContractFactory(
+                      "TestHelper"
+                  )
+                  testHelper = await testHelperFactory.deploy()
+                  await testHelper.deployed()
+
+                  // Send funds to helper contract that can be use for the fund() function
+                  await testHelper.initialFunding({
+                      value: ethers.utils.parseEther("5"),
+                  })
+
+                  // Send funds from helper contract to FundMe contract
+                  // so that this test passes the RefundNoFunds test
+                  await testHelper.fundMeFund(sendValue)
+
+                  await expect(testHelper.fundMeRefund()).to.be.revertedWith(
+                      "FundMe__RefundFailed"
+                  )
               })
           })
 

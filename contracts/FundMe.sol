@@ -2,13 +2,18 @@
 pragma solidity ^0.8.8;
 
 // Imports
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./PriceConverter.sol";
 import "hardhat/console.sol";
 
 // Error codes
 error FundMe__NotOwner();
+error FundMe__RefundFailed();
+error FundMe__RefundNoFunds();
+error FundMe__IndexNotFound();
 error FundMe__WithdrawFailed();
+error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
 
 /** @title A contract for crowd funding
@@ -16,7 +21,7 @@ error FundMe__NotEnoughEthSent();
  *  @notice This contract is to demo a sample funding contract
  *  @dev This implements price feeds as our library
  */
-contract FundMe {
+contract FundMe is ReentrancyGuard {
     // Type declarations
     using PriceConverter for uint256; // Extends uint256 (used from msg.value) to enable direct price conversion
 
@@ -82,22 +87,23 @@ contract FundMe {
      *  @dev This implements price feeds as a library
      */
     function fund() public payable virtual {
-        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
-            revert FundMe__NotEnoughEthSent();
+        // if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
+        //     revert FundMe__NotEnoughEthSent();
 
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
     }
 
-    /** @notice Function for withdrawing funds from the contract
-     *  @dev // TODO withdraw()
+    /** @notice Function for allowing owner to withdraw all funds from the contract
+     *  @dev Doesn't require a reentrancy check as only the owner can call it and it withdraws all funds anyway
      */
-    function withdraw() public payable onlyOwner {
-        // TODO Add Re-entrancy Guard
+    function withdraw() external payable onlyOwner {
+        // Check to make sure that the contract isn not empty before attempting withdrawal
+        if (address(this).balance == 0) revert FundMe__WithdrawNoFunds();
 
-        // Loop through all funder addresses and reset the funded value to 0
         address[] memory funders = s_funders;
-        // Mappings can't be in memory, sorry!
+
+        // Loop through all funders in s_addressToAmountFunded mapping and reset the funded value to 0
         for (
             uint256 funderIndex = 0;
             funderIndex < funders.length;
@@ -110,9 +116,36 @@ contract FundMe {
         // Reset the s_funders array to an empty array
         s_funders = new address[](0);
 
-        // TODO Test for call failing
         (bool callSuccess, ) = i_owner.call{ value: address(this).balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
+    }
+
+    /** @notice Function for refunding deposits to funders on request
+     *  @dev // Requires nonReentrant modifier to stop reentrancy attacks
+     */
+    function refund() external payable nonReentrant {
+        // TODO What happens if the funder isn't found?
+        uint256 refundAmount = s_addressToAmountFunded[msg.sender];
+        if (refundAmount == 0) revert FundMe__RefundNoFunds();
+
+        address[] memory funders = s_funders;
+
+        // Reset the funded amount
+        // TODO Since this is being reset before the funds are being sent does that make it reentrancy safe?
+        s_addressToAmountFunded[msg.sender] = 0;
+
+        // Remove specific funder from the s_funders array
+        for (uint256 i = 0; i < funders.length; i++) {
+            if (funders[i] == msg.sender) {
+                // Move the last element into the place to delete
+                s_funders[i] = s_funders[s_funders.length - 1];
+                // Remove the last element
+                s_funders.pop();
+            }
+        }
+
+        (bool callSuccess, ) = msg.sender.call{ value: refundAmount }("");
+        if (!callSuccess) revert FundMe__RefundFailed();
     }
 
     /** @notice Function for getting priceFeed version
@@ -130,10 +163,30 @@ contract FundMe {
         return i_owner;
     }
 
-    /** @notice Getter function for a specific funder based on their index in the s_funders array
+    /** @notice Getter function for a specific funder address based on their index in the s_funders array
      *  @dev Allow public users to get list of all funders by iterating through the array
      */
-    function getFunder(uint256 index) public view returns (address) {
+    function getFunderIndex(address funderAddress)
+        public
+        view
+        returns (uint256)
+    {
+        address[] memory funders = s_funders;
+        uint256 index;
+
+        for (uint256 i = 0; i < funders.length; i++) {
+            if (funders[i] == funderAddress) {
+                index = i;
+                return index;
+            }
+        }
+        revert FundMe__IndexNotFound();
+    }
+
+    /** @notice Getter function for a specific funder based on their index in the s_funders array
+     *  @dev // TODO
+     */
+    function getFunderAddress(uint256 index) public view returns (address) {
         return s_funders[index];
     }
 

@@ -7,6 +7,7 @@
         "funder",
         "funders",
         "nomiclabs",
+        "Reentrancy",
         "solhint"
     ]
 }

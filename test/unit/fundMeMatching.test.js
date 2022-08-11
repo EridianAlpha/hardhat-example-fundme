@@ -1,6 +1,6 @@
-const { deployments, ethers, getNamedAccounts } = require("hardhat")
 const { assert, expect } = require("chai")
 const { developmentChains } = require("../../helper-hardhat-config")
+const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
 !developmentChains.includes(network.name)
     ? describe.skip
@@ -36,9 +36,9 @@ const { developmentChains } = require("../../helper-hardhat-config")
                       await fundMeMatching.getAddressToAmountFunded(deployer)
                   assert.equal(response.toString(), sendValue.toString())
               })
-              it("Adds funder to array of getFunder", async function () {
+              it("Adds funder to array of getFunderAddress", async function () {
                   await fundMeMatching.fund({ value: sendValue })
-                  const funder = await fundMeMatching.getFunder(0)
+                  const funder = await fundMeMatching.getFunderAddress(0)
                   assert.equal(funder, deployer)
                   assert.equal(true, true)
               })
