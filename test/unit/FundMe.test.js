@@ -74,11 +74,20 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
 
               it("Withdraw .call failure throws error", async function () {
-                  // Deploy helper contract
+                  // Get helper contract
                   const testHelperFactory = await ethers.getContractFactory(
                       "TestHelper"
                   )
-                  testHelper = await testHelperFactory.deploy()
+
+                  // Get priceFeedAddress
+                  const ethUsdAggregator = await deployments.get(
+                      "MockV3Aggregator"
+                  )
+
+                  // Deploy helper contract and pass priceFeedAddress to constructor
+                  testHelper = await testHelperFactory.deploy(
+                      ethUsdAggregator.address
+                  )
                   await testHelper.deployed()
 
                   // Send funds to helper contract that can be use for the fund() function
@@ -215,11 +224,20 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
 
               it("Refund .call failure throws error", async function () {
-                  // Deploy helper contract
+                  // Get helper contract
                   const testHelperFactory = await ethers.getContractFactory(
                       "TestHelper"
                   )
-                  testHelper = await testHelperFactory.deploy()
+
+                  // Get priceFeedAddress
+                  const ethUsdAggregator = await deployments.get(
+                      "MockV3Aggregator"
+                  )
+
+                  // Deploy helper contract and pass priceFeedAddress to constructor
+                  testHelper = await testHelperFactory.deploy(
+                      ethUsdAggregator.address
+                  )
                   await testHelper.deployed()
 
                   // Send funds to helper contract that can be use for the fund() function

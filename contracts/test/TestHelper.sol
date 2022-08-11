@@ -5,18 +5,19 @@ import "../FundMe.sol";
 
 /**
  * This contract is used to test the .call failing in FundMe.sol
- * Test found in FundMe.test.js "Withdraw .call failure throws error"
+ * The test is found in FundMe.test.js:
+ * - "Withdraw .call failure throws error"
+ * - "Refund .call failure throws error"
  *
- * The reason this contract allows the .call to fail is because it doesn't have a receive() function
+ * The reason this contract makes the .call to fail is because it doesn't have a receive() function
+ * so the withdrawn and refunded ETH can't be accepted
  * but I still need to send funds to allow it to pass the "zero balance fails" tests
- * so there is a specific function for sending those initial funds
+ * so there is a specific payable function for sending those initial funds initialFunding()
  */
 contract TestHelper {
-    address priceFeedAddress;
     FundMe fundMeContract;
-    address fundMeContractAddress;
 
-    constructor() {
+    constructor(address priceFeedAddress) {
         fundMeContract = new FundMe(priceFeedAddress);
     }
 

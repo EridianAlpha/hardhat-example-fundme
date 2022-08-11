@@ -87,8 +87,8 @@ contract FundMe is ReentrancyGuard {
      *  @dev This implements price feeds as a library
      */
     function fund() public payable virtual {
-        // if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
-        //     revert FundMe__NotEnoughEthSent();
+        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
+            revert FundMe__NotEnoughEthSent();
 
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
@@ -124,7 +124,6 @@ contract FundMe is ReentrancyGuard {
      *  @dev // Requires nonReentrant modifier to stop reentrancy attacks
      */
     function refund() external payable nonReentrant {
-        // TODO What happens if the funder isn't found?
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];
         if (refundAmount == 0) revert FundMe__RefundNoFunds();
 
