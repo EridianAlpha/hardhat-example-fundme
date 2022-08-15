@@ -91,7 +91,19 @@ contract FundMe is ReentrancyGuard {
             revert FundMe__NotEnoughEthSent();
 
         s_addressToAmountFunded[msg.sender] += msg.value;
-        s_funders.push(msg.sender);
+
+        // If funder doesn't already exist, add to s_funders array
+        // TODO Can this be gas optimised?
+        address[] memory funders = s_funders;
+        bool funderFound;
+        for (uint256 i = 0; i < funders.length; i++) {
+            if (funders[i] == msg.sender) {
+                funderFound = true;
+            }
+        }
+        if (!funderFound) {
+            s_funders.push(msg.sender);
+        }
     }
 
     /** @notice Function for allowing owner to withdraw all funds from the contract
@@ -121,7 +133,7 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Function for refunding deposits to funders on request
-     *  @dev Requires nonReentrant modifier to stop reentrancy attacks
+     *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded is reset, but retained here for completness of this template
      */
     function refund() external payable nonReentrant {
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];
@@ -129,8 +141,8 @@ contract FundMe is ReentrancyGuard {
 
         address[] memory funders = s_funders;
 
-        // Reset the funded amount
-        // TODO Since this is being reset before the funds are being sent does that make it reentrancy safe?
+        // Reseting the funded amount before the refund is
+        // sent stops reentrancy attacks on this function
         s_addressToAmountFunded[msg.sender] = 0;
 
         // Remove specific funder from the s_funders array
@@ -205,5 +217,12 @@ contract FundMe is ReentrancyGuard {
      */
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_priceFeed;
+    }
+
+    /** @notice Getter function to get the current price feed value
+     *  @dev Public function to allow anyone to easily check the current price feed value
+     */
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
     }
 }

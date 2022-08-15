@@ -263,6 +263,54 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                       "FundMe__RefundFailed"
                   )
               })
+
+              it("Refund function blocks reentrancy attack", async function () {
+                  // Get helper contract
+                  const reEntrancyAttackFactory =
+                      await ethers.getContractFactory("ReEntrancyAttack")
+
+                  // Deploy ReEntrancyAttack contract and pass fundMeAddress to constructor
+                  reEntrancyAttack = await reEntrancyAttackFactory.deploy(
+                      fundMe.address
+                  )
+                  await reEntrancyAttack.deployed()
+
+                  // Deposit multiple 1 ETH from other accounts to confirm that isn't refunded in the attack
+                  const accounts = await ethers.getSigners()
+                  const funder2 = accounts[1]
+                  const funder2ConnectedContract = await fundMe.connect(funder2)
+                  await funder2ConnectedContract.fund({
+                      value: sendValue,
+                  })
+
+                  //   console.log(
+                  //       "1 fundMe.balance: " + (await fundMe.getBalance())
+                  //   )
+
+                  //   console.log(
+                  //       "1 reEntrancyAttack.getBalance(): " +
+                  //           (await reEntrancyAttack.getBalance())
+                  //   )
+
+                  //   // Call attack() and send 1 ETH
+                  //   await reEntrancyAttack.attack({
+                  //       value: ethers.utils.parseEther("1"),
+                  //   })
+                  //   console.log(
+                  //       "2 reEntrancyAttack.getBalance(): " +
+                  //           (await reEntrancyAttack.getBalance())
+                  //   )
+                  //   console.log(
+                  //       "2 fundMe.balance: " + (await fundMe.getBalance())
+                  //   )
+
+                  // Check values before and after to make sure only 1 ETH was refunded
+                  await expect(
+                      reEntrancyAttack.attack({
+                          value: ethers.utils.parseEther("1"),
+                      })
+                  ).to.be.revertedWith("FundMe__RefundFailed")
+              })
           })
 
           describe("getters", async function () {
