@@ -17,10 +17,10 @@ error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
 error FundMe__OwnerTransferZeroAddress();
 
-/** @title A template contract for funding and withdrawals
- *  @author EridianAlpha
- *  @notice This contract is to demo a sample funding contract
- *  @dev Chainlink is used to implement price feeds
+/** @title A template contract for funding and withdrawals.
+ *  @author EridianAlpha.
+ *  @notice This contract is to demo a sample funding contract.
+ *  @dev Chainlink is used to implement price feeds.
  */
 contract FundMe is ReentrancyGuard {
     // Type declarations
@@ -91,8 +91,8 @@ contract FundMe is ReentrancyGuard {
         fund();
     }
 
-    /** @notice Function for sending funds to the contract
-     *  @dev This implements price feeds as a library
+    /** @notice Function for sending funds to the contract.
+     *  @dev This implements price feeds as a library.
      */
     function fund() public payable virtual {
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
@@ -110,8 +110,8 @@ contract FundMe is ReentrancyGuard {
         s_funders.push(msg.sender);
     }
 
-    /** @notice Function for allowing owner to withdraw all funds from the contract
-     *  @dev Does not require a reentrancy check as only the owner can call it and it withdraws all funds anyway
+    /** @notice Function for allowing owner to withdraw all funds from the contract.
+     *  @dev Does not require a reentrancy check as only the owner can call it and it withdraws all funds anyway.
      */
     function withdraw() external payable onlyOwner {
         // Check to make sure that the contract is not empty before attempting withdrawal
@@ -139,8 +139,9 @@ contract FundMe is ReentrancyGuard {
         if (!callSuccess) revert FundMe__WithdrawFailed();
     }
 
-    /** @notice Function for refunding deposits to funders on request
-     *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded is reset, but retained here for completeness of this template
+    /** @notice Function for refunding deposits to funders on request.
+     *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded
+     * is reset, but retained here for completeness of this template.
      */
     function refund() external payable nonReentrant {
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];
@@ -169,22 +170,26 @@ contract FundMe is ReentrancyGuard {
         if (!callSuccess) revert FundMe__RefundFailed();
     }
 
-    /** @notice Getter function to get the i_creator address
-     *  @dev Public function to allow anyone to view the contract creator
+    /** @notice Getter function to get the i_creator address.
+     *  @dev Public function to allow anyone to view the contract creator.
+     *  @return address of the creator.
      */
     function getCreator() public view returns (address) {
         return i_creator;
     }
 
-    /** @notice Getter function for the contract owner
-     *  @dev Used instead of the variable directly so the s_ is not used everywhere
+    /** @notice Getter function for the contract owner.
+     *  @dev Used instead of the variable directly so the s_ is not used everywhere.
+     *  @return address of the current owner.
      */
     function getOwner() public view returns (address) {
         return s_owner;
     }
 
-    /** @notice Getter function for a specific funder address based on their index in the s_funders array
-     *  @dev Allow public users to get list of all funders by iterating through the array
+    /** @notice Getter function for a specific funder address based on their index in the s_funders array.
+     *  @dev Allow public users to get list of all funders by iterating through the array.
+     *  @param funderAddress The address of the funder to be found in s_funders array.
+     *  @return uint256 index position of funderAddress.
      */
     function getFunderIndex(address funderAddress)
         public
@@ -203,15 +208,15 @@ contract FundMe is ReentrancyGuard {
         revert FundMe__IndexNotFound();
     }
 
-    /** @notice Getter function for a specific funder based on their index in the s_funders array
+    /** @notice Getter function for a specific funder based on their index in the s_funders array.
      *  @dev // TODO
      */
     function getFunderAddress(uint256 index) public view returns (address) {
         return s_funders[index];
     }
 
-    /** @notice Getter function to convert an address to the total amount funded
-     *  @dev Public function to allow anyone to easily check the balance funded by any address
+    /** @notice Getter function to convert an address to the total amount funded.
+     *  @dev Public function to allow anyone to easily check the balance funded by any address.
      */
     function getAddressToAmountFunded(address funder)
         public
@@ -221,22 +226,22 @@ contract FundMe is ReentrancyGuard {
         return s_addressToAmountFunded[funder];
     }
 
-    /** @notice Getter function to get the current price feed value
-     *  @dev Public function to allow anyone to check the current price feed value
+    /** @notice Getter function to get the current price feed value.
+     *  @dev Public function to allow anyone to check the current price feed value.
      */
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_priceFeed;
     }
 
-    /** @notice Getter function to get the current balance of the contract
-     *  @dev Public function to allow anyone to check the current balance of the contract
+    /** @notice Getter function to get the current balance of the contract.
+     *  @dev Public function to allow anyone to check the current balance of the contract.
      */
     function getBalance() public view returns (uint256) {
         return address(this).balance;
     }
 
-    /** @notice Getter function to get the s_funders array
-     *  @dev Public function to allow anyone to view the s_funders array
+    /** @notice Getter function to get the s_funders array.
+     *  @dev Public function to allow anyone to view the s_funders array.
      */
     function getFunders() public view returns (address[] memory) {
         return s_funders;
@@ -271,6 +276,7 @@ contract FundMe is ReentrancyGuard {
 
     /**
      * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @notice This public function does not expose the internal function called within.
      * @param newOwner The address to transfer ownership to.
      */
     function transferOwnership(address newOwner) public onlyOwner {
