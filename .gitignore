@@ -5,6 +5,9 @@ node_modules
 # OSX Files
 .DS_Store
 
+# VSCode Files
+.vscode
+
 # Solidity Ignore Files
 .encryptedKey.json
 coverage

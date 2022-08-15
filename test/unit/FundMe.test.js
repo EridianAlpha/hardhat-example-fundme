@@ -336,6 +336,43 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
           })
 
+          describe("ownership", async function () {
+              it("isOwner bool true", async function () {
+                  assert.equal(await fundMe.isOwner(), true)
+              })
+              it("isOwner bool false", async function () {
+                  const accounts = await ethers.getSigners()
+                  const attacker = accounts[1]
+                  const attackerConnectedContract = await fundMe.connect(
+                      attacker
+                  )
+
+                  const response = await attackerConnectedContract.isOwner()
+                  assert.equal(response, false)
+              })
+              it("Renounce ownership", async function () {
+                  const addressZero =
+                      "0x0000000000000000000000000000000000000000"
+                  await fundMe.renounceOwnership()
+                  assert.equal(await fundMe.getOwner(), addressZero)
+              })
+              it("Transfer ownership to zero address fails", async function () {
+                  const addressZero =
+                      "0x0000000000000000000000000000000000000000"
+                  await expect(
+                      fundMe.transferOwnership(addressZero)
+                  ).to.be.revertedWith("FundMe__OwnerTransferZeroAddress")
+              })
+              it("Transfer ownership success", async function () {
+                  const accounts = await ethers.getSigners()
+                  const newOwner = accounts[1]
+                  const newOwnerAddress = newOwner.address
+
+                  await fundMe.transferOwnership(newOwnerAddress)
+                  assert.equal(await fundMe.getOwner(), newOwnerAddress)
+              })
+          })
+
           describe("receive & fallback", async function () {
               it("Coverage for receive() function", async function () {
                   const response = await fundMe.fallback({ value: sendValue })

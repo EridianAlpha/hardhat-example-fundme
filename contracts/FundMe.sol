@@ -15,6 +15,7 @@ error FundMe__IndexNotFound();
 error FundMe__WithdrawFailed();
 error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
+error FundMe__OwnerTransferZeroAddress();
 
 /** @title A template contract for funding and withdrawals
  *  @author EridianAlpha
@@ -250,6 +251,7 @@ contract FundMe is ReentrancyGuard {
         return msg.sender == s_owner;
     }
 
+    // TODO Make all function comments in this format (and this informative)
     /**
      * @dev Allows the current owner to relinquish control of the contract.
      * @notice Renouncing to ownership will leave the contract without an owner.
@@ -274,7 +276,7 @@ contract FundMe is ReentrancyGuard {
      * @param newOwner The address to transfer ownership to.
      */
     function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0));
+        if (newOwner == address(0)) revert FundMe__OwnerTransferZeroAddress();
         emit OwnershipTransferred(s_owner, newOwner);
         s_owner = newOwner;
     }
