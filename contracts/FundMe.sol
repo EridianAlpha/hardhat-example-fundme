@@ -16,10 +16,10 @@ error FundMe__WithdrawFailed();
 error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
 
-/** @title A contract for crowd funding
+/** @title A template contract for funding and withdrawals
  *  @author EridianAlpha
  *  @notice This contract is to demo a sample funding contract
- *  @dev This implements price feeds as our library
+ *  @dev Chainlink is used to implement price feeds
  */
 contract FundMe is ReentrancyGuard {
     // Type declarations
@@ -30,7 +30,7 @@ contract FundMe is ReentrancyGuard {
     address private immutable i_owner; // Set in constructor
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
-    uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes
+    uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
 
     // Modifiers
     modifier onlyOwner() {
@@ -92,7 +92,7 @@ contract FundMe is ReentrancyGuard {
 
         s_addressToAmountFunded[msg.sender] += msg.value;
 
-        // If funder doesn't already exist, add to s_funders array
+        // If funder does not already exist, add to s_funders array
         address[] memory funders = s_funders;
         for (uint256 i = 0; i < funders.length; i++) {
             if (funders[i] == msg.sender) {
@@ -103,10 +103,10 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Function for allowing owner to withdraw all funds from the contract
-     *  @dev Doesn't require a reentrancy check as only the owner can call it and it withdraws all funds anyway
+     *  @dev Does not require a reentrancy check as only the owner can call it and it withdraws all funds anyway
      */
     function withdraw() external payable onlyOwner {
-        // Check to make sure that the contract isn not empty before attempting withdrawal
+        // Check to make sure that the contract is not empty before attempting withdrawal
         if (address(this).balance == 0) revert FundMe__WithdrawNoFunds();
 
         address[] memory funders = s_funders;
@@ -164,7 +164,7 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Getter function for the contract owner
-     *  @dev Used instead of the variable directly so the i_ isn't used everywhere
+     *  @dev Used instead of the variable directly so the i_ is not used everywhere
      */
     function getOwner() public view returns (address) {
         return i_owner;
