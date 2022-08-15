@@ -106,7 +106,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // If the withdraw fails, the s_funders address array should not be reset
                   // (This test isn't really needed, it's just showing that revert works by undoing all changes
                   // made to the state during the transaction)
-                  assert.equal(
+                  await assert.equal(
                       await testHelper.fundMeGetFunderAddress(0),
                       testHelper.address
                   )
@@ -166,6 +166,10 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
           describe("refund", async function () {
               beforeEach(async function () {
                   // Send first value as the deployer
+                  await fundMe.fund({ value: sendValue })
+
+                  // Fund again to check for edge cases
+                  // when deleting elements from the s_funders array
                   await fundMe.fund({ value: sendValue })
               })
 
@@ -282,27 +286,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await funder2ConnectedContract.fund({
                       value: sendValue,
                   })
-
-                  //   console.log(
-                  //       "1 fundMe.balance: " + (await fundMe.getBalance())
-                  //   )
-
-                  //   console.log(
-                  //       "1 reEntrancyAttack.getBalance(): " +
-                  //           (await reEntrancyAttack.getBalance())
-                  //   )
-
-                  //   // Call attack() and send 1 ETH
-                  //   await reEntrancyAttack.attack({
-                  //       value: ethers.utils.parseEther("1"),
-                  //   })
-                  //   console.log(
-                  //       "2 reEntrancyAttack.getBalance(): " +
-                  //           (await reEntrancyAttack.getBalance())
-                  //   )
-                  //   console.log(
-                  //       "2 fundMe.balance: " + (await fundMe.getBalance())
-                  //   )
 
                   // Check values before and after to make sure only 1 ETH was refunded
                   await expect(

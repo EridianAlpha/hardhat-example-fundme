@@ -93,17 +93,13 @@ contract FundMe is ReentrancyGuard {
         s_addressToAmountFunded[msg.sender] += msg.value;
 
         // If funder doesn't already exist, add to s_funders array
-        // TODO Can this be gas optimised?
         address[] memory funders = s_funders;
-        bool funderFound;
         for (uint256 i = 0; i < funders.length; i++) {
             if (funders[i] == msg.sender) {
-                funderFound = true;
+                return;
             }
         }
-        if (!funderFound) {
-            s_funders.push(msg.sender);
-        }
+        s_funders.push(msg.sender);
     }
 
     /** @notice Function for allowing owner to withdraw all funds from the contract
@@ -133,7 +129,7 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Function for refunding deposits to funders on request
-     *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded is reset, but retained here for completness of this template
+     *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded is reset, but retained here for completeness of this template
      */
     function refund() external payable nonReentrant {
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];
@@ -141,7 +137,7 @@ contract FundMe is ReentrancyGuard {
 
         address[] memory funders = s_funders;
 
-        // Reseting the funded amount before the refund is
+        // Resetting the funded amount before the refund is
         // sent stops reentrancy attacks on this function
         s_addressToAmountFunded[msg.sender] = 0;
 
