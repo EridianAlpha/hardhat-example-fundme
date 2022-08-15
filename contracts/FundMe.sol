@@ -132,6 +132,9 @@ contract FundMe is ReentrancyGuard {
         // Reset the s_funders array to an empty array
         s_funders = new address[](0);
 
+        // ***********
+        // SEND FUNDS
+        // ***********
         (bool callSuccess, ) = s_owner.call{ value: address(this).balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
     }
@@ -159,6 +162,9 @@ contract FundMe is ReentrancyGuard {
             }
         }
 
+        // ***********
+        // SEND FUNDS
+        // ***********
         (bool callSuccess, ) = msg.sender.call{ value: refundAmount }("");
         if (!callSuccess) revert FundMe__RefundFailed();
     }
