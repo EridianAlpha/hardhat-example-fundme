@@ -28,7 +28,7 @@ contract FundMe is ReentrancyGuard {
     // State variables
     address[] internal s_funders;
     address private immutable i_creator; // Set in constructor
-    address private immutable s_owner; // Set in constructor
+    address private s_owner; // Set in constructor
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
     uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
@@ -38,6 +38,11 @@ contract FundMe is ReentrancyGuard {
         if (msg.sender != s_owner) revert FundMe__NotOwner();
         _;
     }
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * Functions order:
@@ -157,16 +162,15 @@ contract FundMe is ReentrancyGuard {
         if (!callSuccess) revert FundMe__RefundFailed();
     }
 
-    /** @notice Function for getting priceFeed version
-     *  @dev // TODO getPriceFeedVersion()
+    /** @notice Getter function to get the i_creator address
+     *  @dev Public function to allow anyone to view the contract creator
      */
-    function getPriceFeedVersion() public view returns (uint256) {
-        // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
-        return s_priceFeed.version();
+    function getCreator() public view returns (address) {
+        return i_creator;
     }
 
     /** @notice Getter function for the contract owner
-     *  @dev Used instead of the variable directly so the i_ is not used everywhere
+     *  @dev Used instead of the variable directly so the s_ is not used everywhere
      */
     function getOwner() public view returns (address) {
         return s_owner;
@@ -211,24 +215,67 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Getter function to get the current price feed value
-     *  @dev Public function to allow anyone to easily check the current price feed value
+     *  @dev Public function to allow anyone to check the current price feed value
      */
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_priceFeed;
     }
 
     /** @notice Getter function to get the current balance of the contract
-     *  @dev Public function to allow anyone to easily check the current balance of the contract
+     *  @dev Public function to allow anyone to check the current balance of the contract
      */
     function getBalance() public view returns (uint256) {
         return address(this).balance;
     }
 
     /** @notice Getter function to get the s_funders array
-     *  @dev Public function to allow anyone to easily view the s_funders array
+     *  @dev Public function to allow anyone to view the s_funders array
      */
     function getFunders() public view returns (address[] memory) {
-        // address[] memory funders = s_funders;
         return s_funders;
+    }
+
+    /** @notice Function for getting priceFeed version
+     *  @dev // TODO getPriceFeedVersion()
+     */
+    function getPriceFeedVersion() public view returns (uint256) {
+        // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+        return s_priceFeed.version();
+    }
+
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == s_owner;
+    }
+
+    /**
+     * @dev Allows the current owner to relinquish control of the contract.
+     * @notice Renouncing to ownership will leave the contract without an owner.
+     * It will not be possible to call the functions with the `onlyOwner`
+     * modifier anymore.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(s_owner, address(0));
+        s_owner = address(0);
+    }
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0));
+        emit OwnershipTransferred(s_owner, newOwner);
+        s_owner = newOwner;
     }
 }

@@ -309,17 +309,14 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
           })
 
           describe("getters", async function () {
-              it("Gets s_priceFeed version correctly", async function () {
-                  const response = await fundMe.getPriceFeedVersion()
-                  const version = await mockV3Aggregator.version()
-                  assert.equal(response.toString(), version.toString())
+              it("Gets the contract i_creator correctly", async function () {
+                  const response = await fundMe.getCreator()
+                  assert.equal(response, deployer)
               })
-
-              it("Gets the contract owner correctly", async function () {
+              it("Gets the contract s_owner correctly", async function () {
                   const response = await fundMe.getOwner()
                   assert.equal(response, deployer)
               })
-
               it("Gets the contract balance correctly", async function () {
                   const response = await fundMe.getBalance()
                   const balance = await fundMe.provider.getBalance(
@@ -331,6 +328,11 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await fundMe.fund({ value: sendValue })
                   const response = await fundMe.getFunders()
                   assert.equal(response.toString(), deployer.toString())
+              })
+              it("Gets s_priceFeed version correctly", async function () {
+                  const response = await fundMe.getPriceFeedVersion()
+                  const version = await mockV3Aggregator.version()
+                  assert.equal(response.toString(), version.toString())
               })
           })
 
