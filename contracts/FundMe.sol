@@ -27,14 +27,15 @@ contract FundMe is ReentrancyGuard {
 
     // State variables
     address[] internal s_funders;
-    address private immutable i_owner; // Set in constructor
+    address private immutable i_creator; // Set in constructor
+    address private immutable s_owner; // Set in constructor
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
     uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
 
     // Modifiers
     modifier onlyOwner() {
-        if (msg.sender != i_owner) revert FundMe__NotOwner();
+        if (msg.sender != s_owner) revert FundMe__NotOwner();
         _;
     }
 
@@ -58,7 +59,8 @@ contract FundMe is ReentrancyGuard {
          * Not great for a design if you do want to change the owner in future, but shows how immutable variables work.
          * Would be more useful if it was a creator variable e.g."i_creator" as the creator will never change.
          */
-        i_owner = msg.sender;
+        i_creator = msg.sender;
+        s_owner = msg.sender;
         s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
@@ -124,7 +126,7 @@ contract FundMe is ReentrancyGuard {
         // Reset the s_funders array to an empty array
         s_funders = new address[](0);
 
-        (bool callSuccess, ) = i_owner.call{ value: address(this).balance }("");
+        (bool callSuccess, ) = s_owner.call{ value: address(this).balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
     }
 
@@ -167,7 +169,7 @@ contract FundMe is ReentrancyGuard {
      *  @dev Used instead of the variable directly so the i_ is not used everywhere
      */
     function getOwner() public view returns (address) {
-        return i_owner;
+        return s_owner;
     }
 
     /** @notice Getter function for a specific funder address based on their index in the s_funders array
