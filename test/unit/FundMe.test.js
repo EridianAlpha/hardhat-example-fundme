@@ -324,6 +324,16 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   const response = await fundMe.getOwner()
                   assert.equal(response, deployer)
               })
+
+              it("Gets the contract balance correctly", async function () {
+                  const response = await fundMe.getBalance()
+                  assert.equal(
+                      response.toString(),
+                      (
+                          await fundMe.provider.getBalance(fundMe.address)
+                      ).toString()
+                  )
+              })
           })
 
           describe("receive & fallback", async function () {
