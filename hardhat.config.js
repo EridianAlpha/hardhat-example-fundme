@@ -20,7 +20,7 @@ const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || ""
 module.exports = {
     // solidity: "0.8.8",
     solidity: {
-        compilers: [{ version: "0.8.8" }, { version: "0.6.6" }],
+        compilers: [{ version: "0.8.16" }, { version: "0.6.6" }],
     },
     defaultNetwork: "hardhat",
     networks: {
