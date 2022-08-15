@@ -38,8 +38,8 @@ yarn hardhat coverage
 
 You'll want to set your `TESTNET_RPC_URL` and `PRIVATE_KEY` as environment variables. You can add them to a `.env` file.
 
-- `PRIVATE_KEY`: The private key of your account.
-- `TESTNET_RPC_URL`: This is url of the testnet node you're working with.
+-   `PRIVATE_KEY`: The private key of your account.
+-   `TESTNET_RPC_URL`: This is url of the testnet node you're working with.
 
 2. Get testnet ETH
 

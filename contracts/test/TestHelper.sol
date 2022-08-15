@@ -9,9 +9,9 @@ import "../FundMe.sol";
  * - "Withdraw .call failure throws error"
  * - "Refund .call failure throws error"
  *
- * The reason this contract makes the .call to fail is because it doesn't have a receive() function
- * so the withdrawn and refunded ETH can't be accepted
- * but I still need to send funds to allow it to pass the "zero balance fails" tests
+ * The reason this contract causes the .call to fail is because it doesn't have a receive()
+ * or fallback() function so the withdrawn and refunded ETH can't be accepted
+ * but I still need to send funds to allow this contract to pass the "zero balance fails" tests
  * so there is a specific payable function for sending those initial funds initialFunding()
  */
 contract TestHelper {
@@ -39,5 +39,13 @@ contract TestHelper {
 
     function fundMeRefund() public payable {
         fundMeContract.refund();
+    }
+
+    function fundMeGetFunderAddress(uint256 funderIndex)
+        public
+        view
+        returns (address)
+    {
+        return (fundMeContract.getFunderAddress(funderIndex));
     }
 }

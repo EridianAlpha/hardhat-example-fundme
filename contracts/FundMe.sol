@@ -121,7 +121,7 @@ contract FundMe is ReentrancyGuard {
     }
 
     /** @notice Function for refunding deposits to funders on request
-     *  @dev // Requires nonReentrant modifier to stop reentrancy attacks
+     *  @dev Requires nonReentrant modifier to stop reentrancy attacks
      */
     function refund() external payable nonReentrant {
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];

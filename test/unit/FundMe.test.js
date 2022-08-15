@@ -90,7 +90,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   )
                   await testHelper.deployed()
 
-                  // Send funds to helper contract that can be use for the fund() function
+                  // Send funds to helper contract that can be used for the fund() function
                   await testHelper.initialFunding({
                       value: ethers.utils.parseEther("5"),
                   })
@@ -101,6 +101,14 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
                   await expect(testHelper.fundMeWithdraw()).to.be.revertedWith(
                       "FundMe__WithdrawFailed"
+                  )
+
+                  // If the withdraw fails, the s_funders address array should not be reset
+                  // (This test isn't really needed, it's just showing that revert works by undoing all changes
+                  // made to the state during the transaction)
+                  assert.equal(
+                      await testHelper.fundMeGetFunderAddress(0),
+                      testHelper.address
                   )
               })
 
@@ -165,6 +173,8 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // Arrange
 
                   // Send second value as funder2
+                  // so that the address has more than one funders funds
+                  // to test that only the intended funders amount is refunded
                   const accounts = await ethers.getSigners()
                   const funder2 = accounts[1]
                   const funder2ConnectedContract = await fundMe.connect(funder2)
