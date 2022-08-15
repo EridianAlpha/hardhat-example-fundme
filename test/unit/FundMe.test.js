@@ -46,6 +46,18 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   const response = await fundMe.getFunderIndex(deployer)
                   assert.equal(response.toString(), 0)
               })
+              it("No duplicate entries added to s_funders array", async function () {
+                  await fundMe.fund({ value: sendValue })
+                  await fundMe.fund({ value: sendValue })
+
+                  const funders = await fundMe.getFunders()
+
+                  let findDuplicates = (arr) =>
+                      arr.filter(
+                          (address, index) => arr.indexOf(address) != index
+                      )
+                  assert.equal(findDuplicates(funders), false)
+              })
               it("Checks funder address matches 0 index of s_funders array", async function () {
                   await fundMe.fund({ value: sendValue })
                   const funder = await fundMe.getFunderAddress(0)
@@ -310,12 +322,15 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
               it("Gets the contract balance correctly", async function () {
                   const response = await fundMe.getBalance()
-                  assert.equal(
-                      response.toString(),
-                      (
-                          await fundMe.provider.getBalance(fundMe.address)
-                      ).toString()
+                  const balance = await fundMe.provider.getBalance(
+                      fundMe.address
                   )
+                  assert.equal(response.toString(), balance.toString())
+              })
+              it("Gets the contract s_funders array correctly", async function () {
+                  await fundMe.fund({ value: sendValue })
+                  const response = await fundMe.getFunders()
+                  assert.equal(response.toString(), deployer.toString())
               })
           })
 

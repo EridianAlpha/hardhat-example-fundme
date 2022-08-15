@@ -215,10 +215,18 @@ contract FundMe is ReentrancyGuard {
         return s_priceFeed;
     }
 
-    /** @notice Getter function to get the current price feed value
-     *  @dev Public function to allow anyone to easily check the current price feed value
+    /** @notice Getter function to get the current balance of the contract
+     *  @dev Public function to allow anyone to easily check the current balance of the contract
      */
     function getBalance() public view returns (uint256) {
         return address(this).balance;
+    }
+
+    /** @notice Getter function to get the s_funders array
+     *  @dev Public function to allow anyone to easily view the s_funders array
+     */
+    function getFunders() public view returns (address[] memory) {
+        // address[] memory funders = s_funders;
+        return s_funders;
     }
 }
