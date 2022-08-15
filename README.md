@@ -12,23 +12,60 @@ cd template-hardhat
 yarn upgrade --latest
 ```
 
-### Deploy
+### Compile
 
 ```
-yarn hardhat deploy
+yarn compile
 ```
 
 ### Testing
 
 ```
-yarn hardhat test
+yarn test
 ```
 
 ### Test Coverage
 
 ```
-yarn hardhat coverage
+yarn coverage
 ```
+
+### Linting
+
+To check linting / code formatting:
+
+```
+yarn lint
+```
+
+or, to fix:
+
+```
+yarn lint:fix
+```
+
+### Formatting
+
+```
+yarn format
+```
+<br/>
+
+## Estimate gas
+
+You can estimate how much gas things cost by running:
+
+```
+yarn test
+```
+
+And you'll see and output file called `gas-report.txt`
+
+### Estimate gas cost in USD
+
+To get a USD estimation of gas cost, you'll need a `COINMARKETCAP_API_KEY` environment variable. You can get one for free from [CoinMarketCap](https://pro.coinmarketcap.com/signup).
+
+Then, uncomment the line `coinmarketcap: COINMARKETCAP_API_KEY,` in `hardhat.config.js` to get the USD estimation. Just note, every time you run your tests it will use an API call, so it might make sense to have using coinmarketcap disabled until you need it. You can disable it by just commenting the line back out.
 
 <br/>
 
@@ -50,6 +87,7 @@ Head over to [faucets.chain.link](https://faucets.chain.link/) and get some test
 ```
 yarn hardhat deploy --network <TEST_NETWORK>
 ```
+<br/>
 
 ## Scripts
 
@@ -64,22 +102,7 @@ or
 ```
 yarn hardhat run scripts/withdraw.js
 ```
-
-## Estimate gas
-
-You can estimate how much gas things cost by running:
-
-```
-yarn hardhat test
-```
-
-And you'll see and output file called `gas-report.txt`
-
-### Estimate gas cost in USD
-
-To get a USD estimation of gas cost, you'll need a `COINMARKETCAP_API_KEY` environment variable. You can get one for free from [CoinMarketCap](https://pro.coinmarketcap.com/signup).
-
-Then, uncomment the line `coinmarketcap: COINMARKETCAP_API_KEY,` in `hardhat.config.js` to get the USD estimation. Just note, every time you run your tests it will use an API call, so it might make sense to have using coinmarketcap disabled until you need it. You can disable it by just commenting the line back out.
+<br/>
 
 ## Verify on etherscan
 
@@ -91,24 +114,4 @@ However, you can manual verify with:
 
 ```
 yarn hardhat verify --constructor-args arguments.js DEPLOYED_CONTRACT_ADDRESS
-```
-
-# Linting
-
-To check linting / code formatting:
-
-```
-yarn lint
-```
-
-or, to fix:
-
-```
-yarn lint:fix
-```
-
-# Formatting
-
-```
-yarn format
 ```
