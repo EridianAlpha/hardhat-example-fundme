@@ -30,9 +30,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
           describe("fund", async function () {
               it("Fails if you don't send enough ETH", async function () {
-                  await expect(fundMe.fund()).to.be.revertedWith(
-                      "FundMe__NotEnoughEthSent"
-                  )
+                  await expect(
+                      fundMe.fund({ value: ethers.utils.parseEther("0.001") })
+                  ).to.be.revertedWith("FundMe__NotEnoughEthSent")
               })
               it("Updates the amount funded data structure", async function () {
                   await fundMe.fund({ value: sendValue })
@@ -118,7 +118,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // If the withdraw fails, the s_funders address array should not be reset
                   // (This test isn't really needed, it's just showing that revert works by undoing all changes
                   // made to the state during the transaction)
-                  await assert.equal(
+                  assert.equal(
                       await testHelper.fundMeGetFunderAddress(0),
                       testHelper.address
                   )
@@ -172,6 +172,79 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                           0
                       )
                   }
+              })
+
+              it("Withdraw after selfdestruct attack", async function () {
+                  await fundMe.fund({ value: sendValue })
+
+                  const selfDestructAttackFactory =
+                      await ethers.getContractFactory("SelfDestructAttack")
+
+                  // Deploy SelfDestructAttack contract and pass fundMeAddress to constructor
+                  selfDestructAttack = await selfDestructAttackFactory.deploy(
+                      fundMe.address
+                  )
+
+                  await selfDestructAttack.deployed()
+
+                  await selfDestructAttack.initialFunding({
+                      value: ethers.utils.parseEther("0.001"),
+                  })
+
+                  await selfDestructAttack.attack()
+                  // Check extra funds exist before starting withdrawal
+                  assert.equal(
+                      (
+                          await fundMe.provider.getBalance(fundMe.address)
+                      ).toString(),
+                      (
+                          BigInt(await fundMe.getBalance()) +
+                          BigInt(ethers.utils.parseEther("0.001"))
+                      ).toString()
+                  )
+
+                  await fundMe.withdrawSelfdestructFunds()
+
+                  // Check extra funds are withdrawn correctly
+                  assert.equal(
+                      (
+                          await fundMe.provider.getBalance(fundMe.address)
+                      ).toString(),
+                      BigInt(await fundMe.getBalance()).toString()
+                  )
+              })
+
+              it("FundMeSelfDestructWithdraw .call failure throws error", async function () {
+                  // Get selfdestruct helper contract
+                  const selfDestructHelperFactory =
+                      await ethers.getContractFactory("SelfDestructHelper")
+
+                  // Get priceFeedAddress
+                  const ethUsdAggregator = await deployments.get(
+                      "MockV3Aggregator"
+                  )
+
+                  // Deploy helper contract and pass priceFeedAddress to constructor
+                  selfDestructHelper = await selfDestructHelperFactory.deploy(
+                      ethUsdAggregator.address
+                  )
+                  await selfDestructHelper.deployed()
+
+                  // Send funds to helper contract that can be used to fund FundMe
+                  await selfDestructHelper.initialFunding({
+                      value: ethers.utils.parseEther("5"),
+                  })
+
+                  await selfDestructHelper.attack()
+
+                  // Transfer ownership to allow withdrawal attempt
+                  await selfDestructHelper.fundMeTransferOwnership(
+                      await selfDestructHelper.selfDestructAttackContract2Address()
+                  )
+
+                  await expect(
+                      selfDestructHelper.fundMeSelfDestructWithdraw()
+                  ).to.be.revertedWith("FundMe__WithdrawSelfDestructFailed")
               })
           })
 
@@ -281,7 +354,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
 
               it("Refund function blocks reentrancy attack", async function () {
-                  // Get helper contract
                   const reEntrancyAttackFactory =
                       await ethers.getContractFactory("ReEntrancyAttack")
 

@@ -16,6 +16,7 @@ error FundMe__WithdrawFailed();
 error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
 error FundMe__OwnerTransferZeroAddress();
+error FundMe__WithdrawSelfDestructFailed();
 
 /** @title FundMe
  *  @author EridianAlpha
@@ -33,6 +34,7 @@ contract FundMe is ReentrancyGuard {
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
     uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
+    uint256 private s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
 
     // Modifiers
     modifier onlyOwner() {
@@ -98,6 +100,19 @@ contract FundMe is ReentrancyGuard {
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
             revert FundMe__NotEnoughEthSent();
 
+        /**
+         *  The s_balance variable isn't needed for this function
+         *  as it withdraws 100% of the funds in the contract anyway.
+         *  It actually creates a problem if someone does perform a selfdestruct
+         *  attack, since those funds are then not counted, and get stuck.
+         *  So use another function withdrawSelfdestructFunds() to completely
+         *  drain the contract. This is better as it allows the owner to fix the
+         *  problem, without being accused of draining the main funds/prize.
+         *  It is an example to show how to avoid selfdestruct attacks:
+         *  https://solidity-by-example.org/hacks/self-destruct/
+         */
+        s_balance += msg.value;
+
         s_addressToAmountFunded[msg.sender] += msg.value;
 
         // If funder does not already exist, add to s_funders array
@@ -115,7 +130,7 @@ contract FundMe is ReentrancyGuard {
      */
     function withdraw() external payable onlyOwner {
         // Check to make sure that the contract is not empty before attempting withdrawal
-        if (address(this).balance == 0) revert FundMe__WithdrawNoFunds();
+        if (s_balance == 0) revert FundMe__WithdrawNoFunds();
 
         address[] memory funders = s_funders;
 
@@ -135,8 +150,29 @@ contract FundMe is ReentrancyGuard {
         // ***********
         // SEND FUNDS
         // ***********
-        (bool callSuccess, ) = s_owner.call{ value: address(this).balance }("");
+        (bool callSuccess, ) = s_owner.call{ value: s_balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
+    }
+
+    /** @notice Function for allowing owner to withdraw any selfdestruct funds from the contract.
+     *  @dev // TODO
+     */
+    function withdrawSelfdestructFunds() external payable onlyOwner {
+        console.log("HERE1");
+        console.log("address(this).balance: ");
+        console.log(address(this).balance);
+        console.log("s_balance");
+        console.log(s_balance);
+        if (address(this).balance > s_balance) {
+            console.log("HERE2");
+            uint256 selfdestructBalance = address(this).balance - s_balance;
+            console.log("selfdestructBalance: ");
+            console.log(selfdestructBalance);
+            (bool callSuccess, ) = s_owner.call{ value: selfdestructBalance }(
+                ""
+            );
+            if (!callSuccess) revert FundMe__WithdrawSelfDestructFailed();
+        }
     }
 
     /** @notice Function for refunding deposits to funders on request.
@@ -237,7 +273,7 @@ contract FundMe is ReentrancyGuard {
      *  @dev Public function to allow anyone to check the current balance of the contract.
      */
     function getBalance() public view returns (uint256) {
-        return address(this).balance;
+        return s_balance;
     }
 
     /** @notice Getter function to get the s_funders array.
