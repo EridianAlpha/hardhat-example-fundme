@@ -17,9 +17,9 @@ error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
 error FundMe__OwnerTransferZeroAddress();
 
-/** @title A template contract for funding and withdrawals.
- *  @author EridianAlpha.
- *  @notice This contract is to demo a sample funding contract.
+/** @title FundMe
+ *  @author EridianAlpha
+ *  @notice A template contract for funding and withdrawals.
  *  @dev Chainlink is used to implement price feeds.
  */
 contract FundMe is ReentrancyGuard {

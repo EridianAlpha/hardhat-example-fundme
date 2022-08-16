@@ -3,6 +3,10 @@ pragma solidity ^0.8.16;
 
 import "./FundMe.sol";
 
+/** @title FundMeMatching
+ *  @author EridianAlpha
+ *  @notice A template contract showing the implementation of inheritance and override functions
+ */
 contract FundMeMatching is FundMe {
     // Type declarations
     using PriceConverter for uint256; // Extends uint256 (used from msg.value) to enable direct price conversion
@@ -14,10 +18,10 @@ contract FundMeMatching is FundMe {
      */
     constructor(address priceFeedAddress) FundMe(priceFeedAddress) {}
 
+    function initialFunding() public payable {}
+
     function fund() public payable override {
-        if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
-            revert FundMe__NotEnoughEthSent();
-        s_addressToAmountFunded[msg.sender] += msg.value;
-        s_funders.push(msg.sender);
+        // Use super. to call overridden functions from the inherited contract
+        super.fund();
     }
 }
