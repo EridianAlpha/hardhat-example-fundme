@@ -28,7 +28,7 @@
     "format": "yarn prettier --write .",
     "lint": "yarn solhint 'contracts/*.sol'",
     "lint:fix": "yarn solhint 'contracts/*.sol' --fix",
-    "coverage": "yarn hardhat coverage",
+    "coverage": "yarn hardhat clean; yarn hardhat coverage",
     "test": "yarn hardhat test",
     "test:local": "yarn hardhat test --network localhost",
     "test:rinkeby": "yarn hardhat test --network rinkeby",

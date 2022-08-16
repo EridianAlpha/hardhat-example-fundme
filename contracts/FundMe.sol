@@ -158,16 +158,12 @@ contract FundMe is ReentrancyGuard {
      *  @dev // TODO
      */
     function withdrawSelfdestructFunds() external payable onlyOwner {
-        console.log("HERE1");
-        console.log("address(this).balance: ");
-        console.log(address(this).balance);
-        console.log("s_balance");
-        console.log(s_balance);
         if (address(this).balance > s_balance) {
-            console.log("HERE2");
             uint256 selfdestructBalance = address(this).balance - s_balance;
-            console.log("selfdestructBalance: ");
-            console.log(selfdestructBalance);
+
+            // ***********
+            // SEND FUNDS
+            // ***********
             (bool callSuccess, ) = s_owner.call{ value: selfdestructBalance }(
                 ""
             );
