@@ -343,7 +343,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               it("Refund function blocks reentrancy attack", async function () {
                   const reEntrancyAttackFactory =
                       await ethers.getContractFactory("ReEntrancyAttack")
-
                   // Deploy ReEntrancyAttack contract and pass fundMeAddress to constructor
                   reEntrancyAttack = await reEntrancyAttackFactory.deploy(
                       fundMe.address
@@ -356,7 +355,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await funder2ConnectedContract.fund({
                       value: sendValue,
                   })
-
                   // Check values before and after to make sure only 1 ETH was refunded
                   await expect(
                       reEntrancyAttack.attack({
@@ -395,10 +393,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
           })
 
           describe("ownership", async function () {
-              it("isOwner bool true", async function () {
+              it("isOwner bool", async function () {
                   assert.equal(await fundMe.isOwner(), true)
-              })
-              it("isOwner bool false", async function () {
+
                   const attacker = accounts[1]
                   const attackerConnectedContract = await fundMe.connect(
                       attacker
