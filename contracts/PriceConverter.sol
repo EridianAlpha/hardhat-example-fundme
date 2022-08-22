@@ -12,8 +12,15 @@ library PriceConverter {
         view
         returns (uint256)
     {
-        (, int256 answer, , , ) = priceFeed.latestRoundData();
-        return uint256(answer * 10000000000); // ETH/USD rate in 18 digit
+        // (
+        //     uint80 roundID,
+        //     int256 price,
+        //     uint startedAt,
+        //     uint timeStamp,
+        //     uint80 answeredInRound
+        // )
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        return uint256(price * 10000000000); // ETH/USD rate in 18 digit
     }
 
     function getConversionRate(
@@ -21,7 +28,7 @@ library PriceConverter {
         AggregatorV3Interface priceFeed
     ) internal view returns (uint256) {
         uint256 ethPrice = getPrice(priceFeed);
-        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / (10**18);
         return ethAmountInUsd; // ETH/USD conversion rate, after adjusting the extra 0s.
     }
 }

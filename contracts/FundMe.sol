@@ -3,7 +3,6 @@ pragma solidity ^0.8.16;
 
 // Imports
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./PriceConverter.sol";
 import "hardhat/console.sol";
 
@@ -99,6 +98,9 @@ contract FundMe is ReentrancyGuard {
      *  @dev This implements price feeds as a library.
      */
     function fund() public payable virtual {
+        // msg.value is handled as the first input parameter of getConversionRate()
+        // as it is being used as a Library
+        // with s_priceFeed used as the second input parameter
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
             revert FundMe__NotEnoughEthSent();
 
@@ -281,8 +283,8 @@ contract FundMe is ReentrancyGuard {
         return s_funders;
     }
 
-    /** @notice Function for getting priceFeed version
-     *  @dev // TODO getPriceFeedVersion()
+    /** @notice Function for getting priceFeed version.
+     *  @dev Public function to allow anyone to view the AggregatorV3Interface version.
      */
     function getPriceFeedVersion() public view returns (uint256) {
         return s_priceFeed.version();
