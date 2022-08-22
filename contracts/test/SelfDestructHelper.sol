@@ -46,10 +46,10 @@ contract SelfDestructHelper {
         // Fund selfDestructAttackContract1 to perform initial attack
         // Call specific function name using abi.encodeWithSignature() as no
         // receive() or fallback() exists and contract constructor is not "payable"
-        (bool callSuccess1, ) = address(selfDestructAttackContract1).call{
+        (bool callSuccessAttack, ) = address(selfDestructAttackContract1).call{
             value: attackValue
-        }(abi.encodeWithSignature("initialFunding()", 0, msg.sender));
-        callSuccess1;
+        }(abi.encodeWithSignature("initialFunding()"));
+        callSuccessAttack;
     }
 
     // Function used in test to change owner of deployed FundMe contract
