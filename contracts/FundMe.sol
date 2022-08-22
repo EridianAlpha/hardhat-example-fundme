@@ -69,6 +69,8 @@ contract FundMe is ReentrancyGuard {
          */
         i_creator = msg.sender;
         s_owner = msg.sender;
+
+        // Set the address of the priceFeed contract
         s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
@@ -283,7 +285,6 @@ contract FundMe is ReentrancyGuard {
      *  @dev // TODO getPriceFeedVersion()
      */
     function getPriceFeedVersion() public view returns (uint256) {
-        // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
         return s_priceFeed.version();
     }
 

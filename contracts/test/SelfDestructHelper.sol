@@ -44,8 +44,8 @@ contract SelfDestructHelper {
         callSuccess;
 
         // Fund selfDestructAttackContract1 to perform initial attack
-        // Call specific function name using abi encoding as no receive() or fallback() exists
-        // and contract constructor is not "payable"
+        // Call specific function name using abi.encodeWithSignature() as no
+        // receive() or fallback() exists and contract constructor is not "payable"
         (bool callSuccess1, ) = address(selfDestructAttackContract1).call{
             value: attackValue
         }(abi.encodeWithSignature("initialFunding()", 0, msg.sender));

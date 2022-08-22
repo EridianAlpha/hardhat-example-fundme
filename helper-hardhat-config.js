@@ -10,6 +10,8 @@ const networkConfig = {
 }
 
 const developmentChains = ["hardhat", "localhost"]
+
+// MockV3Aggregator variables
 const DECIMALS = "8"
 const INITIAL_ANSWER = "200000000000" // $2000
 
