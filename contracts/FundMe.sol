@@ -172,6 +172,8 @@ contract FundMe is ReentrancyGuard {
                 ""
             );
             if (!callSuccess) revert FundMe__WithdrawSelfDestructFailed();
+        } else {
+            revert FundMe__WithdrawSelfDestructFailed();
         }
     }
 

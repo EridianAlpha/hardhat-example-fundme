@@ -175,7 +175,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await fundMe.fund({ value: sendValue })
 
                   // Check funds can't be withdrawn before the attack
-                  await fundMe.withdrawSelfdestructFunds()
+                  await expect(
+                      fundMe.withdrawSelfdestructFunds()
+                  ).to.be.revertedWith("FundMe__WithdrawSelfDestructFailed")
 
                   // Deploy SelfDestructAttack contract and pass fundMe.address to constructor
                   const selfDestructAttackFactory =
