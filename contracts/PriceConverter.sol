@@ -3,10 +3,9 @@ pragma solidity ^0.8.16;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-// Why is this a library and not abstract?
-// Why not an interface?
+// This is a library and not an abstract as all of the functions are fully implemented
 library PriceConverter {
-    // We could make this public, but then we'd have to deploy it
+    // Must be internal as it is a library function
     function getPrice(AggregatorV3Interface priceFeed)
         internal
         view
