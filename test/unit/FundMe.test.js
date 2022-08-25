@@ -343,13 +343,13 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
 
               it("Refund function blocks reentrancy attack", async function () {
-                  const reEntrancyAttackFactory =
-                      await ethers.getContractFactory("ReEntrancyAttack")
-                  // Deploy ReEntrancyAttack contract and pass fundMeAddress to constructor
-                  reEntrancyAttack = await reEntrancyAttackFactory.deploy(
+                  const reentrancyAttackFactory =
+                      await ethers.getContractFactory("ReentrancyAttack")
+                  // Deploy ReentrancyAttack contract and pass fundMeAddress to constructor
+                  reentrancyAttack = await reentrancyAttackFactory.deploy(
                       fundMe.address
                   )
-                  await reEntrancyAttack.deployed()
+                  await reentrancyAttack.deployed()
 
                   // Deposit multiple 1 ETH from other accounts to confirm that isn't refunded in the attack
                   const funder2 = accounts[1]
@@ -359,7 +359,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   })
                   // Check values before and after to make sure only 1 ETH was refunded
                   await expect(
-                      reEntrancyAttack.attack({
+                      reentrancyAttack.attack({
                           value: ethers.utils.parseEther("1"),
                       })
                   ).to.be.revertedWith("FundMe__RefundFailed")

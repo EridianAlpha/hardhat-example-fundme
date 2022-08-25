@@ -7,7 +7,7 @@ contract SelfDestructAttack {
     FundMe fundMeContract;
 
     constructor(address fundMeAddress) {
-        // Use existing deployment of FundMe (note the lack of "new" keyword)
+        // Use existing deployment of FundMe (notice the lack of "new" keyword)
         fundMeContract = FundMe(payable(fundMeAddress));
     }
 

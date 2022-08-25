@@ -10,7 +10,7 @@ import "../FundMe.sol";
  * is reset to 0 in fundMe.refund() before the value is sent.
  */
 
-contract ReEntrancyAttack {
+contract ReentrancyAttack {
     FundMe public fundMe;
 
     constructor(address payable _fundMeAddress) {
