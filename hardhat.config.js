@@ -37,7 +37,7 @@ module.exports = {
             url: GOERLI_RPC_URL,
             accounts: [GOERLI_PRIVATE_KEY],
             chainId: 5,
-            blockConfirmations: 6,
+            blockConfirmations: 2,
         },
     },
     etherscan: {
