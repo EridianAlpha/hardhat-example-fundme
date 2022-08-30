@@ -9,6 +9,11 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/contracts": "^4.7.3",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/chai": "^4.3.3",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.7.14",
     "chai": "^4.2.0",
     "dotenv": "^16.0.0",
     "ethereum-waffle": "^3.0.0",
@@ -20,7 +25,10 @@
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.24",
     "solhint": "^3.3.6",
-    "solidity-coverage": "^0.7.16"
+    "solidity-coverage": "^0.7.16",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.0",
+    "typescript": "^4.8.2"
   },
   "scripts": {
     "clean": "yarn hardhat clean",
