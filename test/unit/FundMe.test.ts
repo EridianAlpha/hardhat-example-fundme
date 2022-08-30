@@ -1,20 +1,24 @@
-const { assert, expect } = require("chai")
-const { developmentChains } = require("../../helper-hardhat-config")
-const { deployments, ethers, getNamedAccounts } = require("hardhat")
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { assert, expect } from "chai"
+import { BigNumber } from "ethers"
+import { network, deployments, ethers } from "hardhat"
+import { developmentChains } from "../../helper-hardhat-config"
+import { FundMe, MockV3Aggregator } from "../../typechain-types"
 
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("FundMe", async function () {
-          let fundMe
-          let deployer
-          let accounts
-          let mockV3Aggregator
-          let ethUsdAggregator // Get priceFeedAddress
+          let fundMe: FundMe
+          let deployer: SignerWithAddress
+          let accounts: SignerWithAddress[]
+          let mockV3Aggregator: MockV3Aggregator
+          let ethUsdAggregator: any // Get priceFeedAddress
 
           const sendValue = ethers.utils.parseEther("1")
 
           beforeEach(async function () {
-              deployer = (await getNamedAccounts()).deployer
+              accounts = await ethers.getSigners()
+              deployer = accounts[0]
               await deployments.fixture(["fundMe", "mocks"])
               fundMe = await ethers.getContract("FundMe", deployer)
               mockV3Aggregator = await ethers.getContract(
@@ -22,7 +26,6 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   deployer
               )
               ethUsdAggregator = await deployments.get("MockV3Aggregator")
-              accounts = await ethers.getSigners()
           })
 
           describe("constructor", async function () {
@@ -41,14 +44,14 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               it("Updates the amount funded data structure", async function () {
                   await fundMe.fund({ value: sendValue })
                   const response = await fundMe.getAddressToAmountFunded(
-                      deployer
+                      deployer.address
                   )
                   assert.equal(response.toString(), sendValue.toString())
               })
               it("Checks funder added to s_funders array", async function () {
                   await fundMe.fund({ value: sendValue })
-                  const response = await fundMe.getFunderIndex(deployer)
-                  assert.equal(response.toString(), 0)
+                  const response = await fundMe.getFunderIndex(deployer.address)
+                  assert.equal(response.toString(), "0")
               })
               it("No duplicate entries added to s_funders array", async function () {
                   await fundMe.fund({ value: sendValue })
@@ -56,16 +59,16 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
                   const funders = await fundMe.getFunders()
 
-                  let findDuplicates = (arr) =>
+                  let findDuplicates = (arr: string[]) =>
                       arr.filter(
                           (address, index) => arr.indexOf(address) != index
                       )
-                  assert.equal(findDuplicates(funders), false)
+                  assert.isEmpty(findDuplicates(funders))
               })
               it("Checks funder address matches 0 index of s_funders array", async function () {
                   await fundMe.fund({ value: sendValue })
                   const funder = await fundMe.getFunderAddress(0)
-                  assert.equal(funder, deployer)
+                  assert.equal(funder, deployer.address)
               })
           })
 
@@ -74,9 +77,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await fundMe.fund({ value: sendValue })
 
                   const attacker = accounts[1]
-                  const attackerConnectedContract = await fundMe.connect(
-                      attacker
-                  ) // attacker is an account object, so we're connecting the whole account
+                  const attackerConnectedContract = fundMe.connect(attacker) // attacker is an account object, so we're connecting the whole account
                   await expect(
                       attackerConnectedContract.withdraw()
                   ).to.be.revertedWith("FundMe__NotOwner")
@@ -95,7 +96,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   )
 
                   // Deploy helper contract and pass priceFeedAddress to constructor
-                  testHelper = await testHelperFactory.deploy(
+                  const testHelper = await testHelperFactory.deploy(
                       ethUsdAggregator.address
                   )
                   await testHelper.deployed()
@@ -126,7 +127,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // Arrange
                   const funderCount = 5
                   for (let i = 0; i < funderCount; i++) {
-                      const fundMeConnectedContract = await fundMe.connect(
+                      const fundMeConnectedContract = fundMe.connect(
                           accounts[i]
                       )
                       await fundMeConnectedContract.fund({ value: sendValue })
@@ -134,7 +135,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   const startingFundMeBalance =
                       await fundMe.provider.getBalance(fundMe.address)
                   const startingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
+                      await fundMe.provider.getBalance(deployer.address)
 
                   // Act
                   const transactionResponse = await fundMe.withdraw()
@@ -146,10 +147,10 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                       fundMe.address
                   )
                   const endingDeployerBalance =
-                      await fundMe.provider.getBalance(deployer)
+                      await fundMe.provider.getBalance(deployer.address)
 
                   // Assert
-                  assert.equal(endingFundMeBalance, 0)
+                  assert.equal(endingFundMeBalance.toString(), "0")
                   assert.equal(
                       startingFundMeBalance
                           .add(startingDeployerBalance)
@@ -161,13 +162,12 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   await expect(fundMe.getFunderAddress(0)).to.be.reverted
 
                   // Check that s_addressToAmountFunded mapping is reset for all addresses
-                  for (i = 0; i < funderCount; i++) {
-                      assert.equal(
+                  for (let i = 0; i < funderCount; i++) {
+                      const amountFunded =
                           await fundMe.getAddressToAmountFunded(
                               accounts[i].address
-                          ),
-                          0
-                      )
+                          )
+                      assert.equal(amountFunded.toString(), "0")
                   }
               })
 
@@ -182,9 +182,8 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // Deploy SelfDestructAttack contract and pass fundMe.address to constructor
                   const selfDestructAttackFactory =
                       await ethers.getContractFactory("SelfDestructAttack")
-                  selfDestructAttack = await selfDestructAttackFactory.deploy(
-                      fundMe.address
-                  )
+                  const selfDestructAttack =
+                      await selfDestructAttackFactory.deploy(fundMe.address)
                   await selfDestructAttack.deployed()
 
                   // Fund attack contract
@@ -198,9 +197,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                       (
                           await fundMe.provider.getBalance(fundMe.address)
                       ).toString(),
-                      (
-                          BigInt(await fundMe.getBalance()) + BigInt(sendValue)
-                      ).toString()
+                      (await fundMe.getBalance())
+                          .add(BigNumber.from(sendValue))
+                          .toString()
                   )
 
                   // Withdraw selfdestruct funds
@@ -208,10 +207,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
                   // Check selfdestruct funds are withdrawn correctly
                   assert.equal(
-                      (
-                          await fundMe.provider.getBalance(fundMe.address)
-                      ).toString(),
-                      BigInt(await fundMe.getBalance()).toString()
+                      (await fundMe.provider.getBalance(fundMe.address))
+                          .toString,
+                      (await fundMe.getBalance()).toString
                   )
               })
 
@@ -221,9 +219,10 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                       await ethers.getContractFactory("SelfDestructHelper")
 
                   // Deploy helper contract and pass priceFeedAddress to constructor
-                  selfDestructHelper = await selfDestructHelperFactory.deploy(
-                      ethUsdAggregator.address
-                  )
+                  const selfDestructHelper =
+                      await selfDestructHelperFactory.deploy(
+                          ethUsdAggregator.address
+                      )
                   await selfDestructHelper.deployed()
 
                   // Send funds to helper contract that can be used to fund FundMe and attack
@@ -261,7 +260,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   // so that the address has more than one funders funds
                   // to test that only the intended funders amount is refunded
                   const funder2 = accounts[1]
-                  const funder2ConnectedContract = await fundMe.connect(funder2)
+                  const funder2ConnectedContract = fundMe.connect(funder2)
                   await funder2ConnectedContract.fund({ value: sendValue })
 
                   const funder = await fundMe.getFunderAddress(0)
@@ -297,7 +296,12 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   )
 
                   // Check funder amount has been reset to 0
-                  assert.equal(await fundMe.getAddressToAmountFunded(funder), 0)
+                  assert.equal(
+                      (
+                          await fundMe.getAddressToAmountFunded(funder)
+                      ).toString(),
+                      BigNumber.from("0").toString()
+                  )
 
                   // Check funder has been removed from the s_funders index
                   await expect(
@@ -307,9 +311,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
               it("Refund call with zero balance fails", async function () {
                   const noneFunder = accounts[1]
-                  const noneFunderConnectedContract = await fundMe.connect(
-                      noneFunder
-                  )
+                  const noneFunderConnectedContract = fundMe.connect(noneFunder)
 
                   await expect(
                       noneFunderConnectedContract.refund()
@@ -323,7 +325,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   )
 
                   // Deploy helper contract and pass priceFeedAddress to constructor
-                  testHelper = await testHelperFactory.deploy(
+                  const testHelper = await testHelperFactory.deploy(
                       ethUsdAggregator.address
                   )
                   await testHelper.deployed()
@@ -346,14 +348,14 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   const reentrancyAttackFactory =
                       await ethers.getContractFactory("ReentrancyAttack")
                   // Deploy ReentrancyAttack contract and pass fundMeAddress to constructor
-                  reentrancyAttack = await reentrancyAttackFactory.deploy(
+                  const reentrancyAttack = await reentrancyAttackFactory.deploy(
                       fundMe.address
                   )
                   await reentrancyAttack.deployed()
 
                   // Deposit multiple 1 ETH from other accounts to confirm that isn't refunded in the attack
                   const funder2 = accounts[1]
-                  const funder2ConnectedContract = await fundMe.connect(funder2)
+                  const funder2ConnectedContract = fundMe.connect(funder2)
                   await funder2ConnectedContract.fund({
                       value: sendValue,
                   })
@@ -369,11 +371,11 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
           describe("getters", async function () {
               it("Gets the contract i_creator correctly", async function () {
                   const response = await fundMe.getCreator()
-                  assert.equal(response, deployer)
+                  assert.equal(response, deployer.address)
               })
               it("Gets the contract s_owner correctly", async function () {
                   const response = await fundMe.getOwner()
-                  assert.equal(response, deployer)
+                  assert.equal(response, deployer.address)
               })
               it("Gets the contract balance correctly", async function () {
                   const response = await fundMe.getBalance()
@@ -385,7 +387,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               it("Gets the contract s_funders array correctly", async function () {
                   await fundMe.fund({ value: sendValue })
                   const response = await fundMe.getFunders()
-                  assert.equal(response.toString(), deployer.toString())
+                  assert.equal(response.toString(), deployer.address.toString())
               })
               it("Gets s_priceFeed version correctly", async function () {
                   const response = await fundMe.getPriceFeedVersion()
@@ -399,9 +401,7 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                   assert.equal(await fundMe.isOwner(), true)
 
                   const attacker = accounts[1]
-                  const attackerConnectedContract = await fundMe.connect(
-                      attacker
-                  )
+                  const attackerConnectedContract = fundMe.connect(attacker)
 
                   const response = await attackerConnectedContract.isOwner()
                   assert.equal(response, false)
@@ -435,7 +435,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
               })
 
               it("Coverage for fallback() function", async () => {
+                  let signer: SignerWithAddress
                   ;[signer] = await ethers.getSigners()
+                  // const signer: Signer = await ethers.getSigners()
 
                   const nonExistentFuncSignature =
                       "nonExistentFunc(uint256,uint256)"

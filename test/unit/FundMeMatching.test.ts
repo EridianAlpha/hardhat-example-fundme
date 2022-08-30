@@ -1,18 +1,23 @@
-const { assert, expect } = require("chai")
-const { developmentChains } = require("../../helper-hardhat-config")
-const { deployments, ethers, getNamedAccounts } = require("hardhat")
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { assert, expect } from "chai"
+import { BigNumber } from "ethers"
+import { network, deployments, ethers } from "hardhat"
+import { developmentChains } from "../../helper-hardhat-config"
+import { FundMeMatching, MockV3Aggregator } from "../../typechain-types"
 
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("FundMeMatching", async function () {
-          let fundMeMatching
-          let deployer
-          let mockV3Aggregator
+          let fundMeMatching: FundMeMatching
+          let deployer: SignerWithAddress
+          let accounts: SignerWithAddress[]
+          let mockV3Aggregator: MockV3Aggregator
 
           const initialFundingValue = ethers.utils.parseEther("10")
 
           beforeEach(async function () {
-              deployer = (await getNamedAccounts()).deployer
+              accounts = await ethers.getSigners()
+              deployer = accounts[0]
               await deployments.fixture(["fundMeMatching", "mocks"])
               fundMeMatching = await ethers.getContract(
                   "FundMeMatching",
@@ -45,9 +50,8 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
                   const accounts = await ethers.getSigners()
                   const funder2 = accounts[1]
-                  const funder2ConnectedContract = await fundMeMatching.connect(
-                      funder2
-                  )
+                  const funder2ConnectedContract =
+                      fundMeMatching.connect(funder2)
 
                   const startingFunder2FundedAmount =
                       await fundMeMatching.getAddressToAmountFunded(
@@ -65,10 +69,9 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
                       )
 
                   assert.equal(
-                      (
-                          endingFunder2FundedAmount -
-                          startingFunder2FundedAmount
-                      ).toString(),
+                      endingFunder2FundedAmount
+                          .sub(startingFunder2FundedAmount)
+                          .toString(),
                       fundingAmount.toString()
                   )
               })

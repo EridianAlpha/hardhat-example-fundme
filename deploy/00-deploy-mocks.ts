@@ -1,11 +1,15 @@
-const { network } = require("hardhat")
-const {
+import { HardhatRuntimeEnvironment } from "hardhat/types"
+import { DeployFunction } from "hardhat-deploy/types"
+import {
     developmentChains,
     DECIMALS,
     INITIAL_ANSWER,
-} = require("../helper-hardhat-config")
+} from "../helper-hardhat-config"
 
-module.exports = async ({ getNamedAccounts, deployments }) => {
+const deployMocks: DeployFunction = async function (
+    hre: HardhatRuntimeEnvironment
+) {
+    const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
 
@@ -21,5 +25,5 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         log("-------------------------------------------------")
     }
 }
-
-module.exports.tags = ["mocks"]
+export default deployMocks
+deployMocks.tags = ["mocks"]

@@ -1,13 +1,13 @@
-require("dotenv").config()
-require("@nomiclabs/hardhat-etherscan")
-require("@nomiclabs/hardhat-waffle")
-require("hardhat-gas-reporter")
-require("solidity-coverage")
-require("hardhat-deploy")
-
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
+import "@typechain/hardhat"
+import "@nomiclabs/hardhat-waffle"
+import "@nomiclabs/hardhat-etherscan"
+import "@nomiclabs/hardhat-ethers"
+import "hardhat-gas-reporter"
+import "dotenv/config"
+import "solidity-coverage"
+import "hardhat-deploy"
+import "solidity-coverage"
+import { HardhatUserConfig } from "hardhat/config"
 
 const GOERLI_PRIVATE_KEY =
     process.env.GOERLI_PRIVATE_KEY ||
@@ -17,7 +17,7 @@ const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ""
 const REPORT_GAS = process.env.REPORT_GAS || undefined
 const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || ""
 
-module.exports = {
+const config: HardhatUserConfig = {
     solidity: {
         compilers: [{ version: "0.8.16" }, { version: "0.6.6" }],
     },
@@ -37,7 +37,6 @@ module.exports = {
             url: GOERLI_RPC_URL,
             accounts: [GOERLI_PRIVATE_KEY],
             chainId: 5,
-            blockConfirmations: 2,
         },
     },
     etherscan: {
@@ -58,3 +57,5 @@ module.exports = {
         },
     },
 }
+
+export default config
