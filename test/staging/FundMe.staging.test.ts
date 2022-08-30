@@ -1,28 +1,33 @@
-const { assert } = require("chai")
-const { network, ethers, getNamedAccounts } = require("hardhat")
-const { developmentChains } = require("../../helper-hardhat-config")
+import { assert } from "chai"
+import { ethers, network } from "hardhat"
+import { developmentChains } from "../../helper-hardhat-config"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { FundMe } from "../../typechain-types"
 
 developmentChains.includes(network.name)
     ? describe.skip
     : describe("FundMe Staging Tests", async function () {
-          let deployer
-          let fundMe
+          let fundMe: FundMe
+          let deployer: SignerWithAddress
+
           const sendValue = ethers.utils.parseEther("0.001")
           beforeEach(async () => {
-              deployer = (await getNamedAccounts()).deployer
-              fundMe = await ethers.getContract("FundMe", deployer)
+              const accounts = await ethers.getSigners()
+              deployer = accounts[0]
+              fundMe = await ethers.getContract("FundMe", deployer.address)
           })
 
           it("Allows people to fund and withdraw", async function () {
               await fundMe.fund({ value: sendValue })
-              await fundMe.withdraw()
-
+              await fundMe.withdraw({
+                  gasLimit: 100000,
+              })
               const endingFundMeBalance = await fundMe.provider.getBalance(
                   fundMe.address
               )
               console.log(
                   endingFundMeBalance.toString() +
-                      "Should equal 0, running assert equal..."
+                      " should equal 0, running assert equal..."
               )
               assert.equal(endingFundMeBalance.toString(), "0")
           })
