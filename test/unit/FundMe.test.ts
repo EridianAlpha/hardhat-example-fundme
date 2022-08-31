@@ -80,7 +80,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const attackerConnectedContract = fundMe.connect(attacker) // attacker is an account object, so we're connecting the whole account
                   await expect(
                       attackerConnectedContract.withdraw()
-                  ).to.be.revertedWith("FundMe__NotOwner")
+                  ).to.be.revertedWith("Ownable: caller is not the owner")
               })
 
               it("Withdraw call with zero balance fails", async function () {
@@ -373,8 +373,8 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const response = await fundMe.getCreator()
                   assert.equal(response, deployer.address)
               })
-              it("Gets the contract s_owner correctly", async function () {
-                  const response = await fundMe.getOwner()
+              it("Gets the contract owner correctly", async function () {
+                  const response = await fundMe.owner()
                   assert.equal(response, deployer.address)
               })
               it("Gets the contract balance correctly", async function () {
@@ -397,34 +397,28 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
           })
 
           describe("ownership", async function () {
-              it("isOwner bool", async function () {
-                  assert.equal(await fundMe.isOwner(), true)
-
-                  const attacker = accounts[1]
-                  const attackerConnectedContract = fundMe.connect(attacker)
-
-                  const response = await attackerConnectedContract.isOwner()
-                  assert.equal(response, false)
+              it("Check owner", async function () {
+                  assert.equal(await fundMe.owner(), deployer.address)
               })
               it("Renounce ownership", async function () {
                   const addressZero =
                       "0x0000000000000000000000000000000000000000"
                   await fundMe.renounceOwnership()
-                  assert.equal(await fundMe.getOwner(), addressZero)
+                  assert.equal(await fundMe.owner(), addressZero)
               })
               it("Transfer ownership to zero address fails", async function () {
                   const addressZero =
                       "0x0000000000000000000000000000000000000000"
                   await expect(
                       fundMe.transferOwnership(addressZero)
-                  ).to.be.revertedWith("FundMe__OwnerTransferZeroAddress")
+                  ).to.be.revertedWith("Ownable: new owner is the zero address")
               })
               it("Transfer ownership success", async function () {
                   const newOwner = accounts[1]
                   const newOwnerAddress = newOwner.address
 
                   await fundMe.transferOwnership(newOwnerAddress)
-                  assert.equal(await fundMe.getOwner(), newOwnerAddress)
+                  assert.equal(await fundMe.owner(), newOwnerAddress)
               })
           })
 

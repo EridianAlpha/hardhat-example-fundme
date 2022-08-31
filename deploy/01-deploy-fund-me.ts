@@ -10,7 +10,7 @@ const deployFundMe: DeployFunction = async function (
     const { getNamedAccounts, deployments, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
-    const chainId = network.config.chainId
+    // const chainId = network.config.chainId
 
     let ethUsdPriceFeedAddress
     if (developmentChains.includes(network.name)) {

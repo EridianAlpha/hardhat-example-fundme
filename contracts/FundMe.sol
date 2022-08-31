@@ -2,73 +2,20 @@
 pragma solidity ^0.8.16;
 
 // Imports
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./PriceConverter.sol";
+// import "./Ownable.sol";
 import "hardhat/console.sol";
+import "./PriceConverter.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Error codes
-error FundMe__NotOwner();
 error FundMe__RefundFailed();
 error FundMe__RefundNoFunds();
 error FundMe__IndexNotFound();
 error FundMe__WithdrawFailed();
 error FundMe__WithdrawNoFunds();
 error FundMe__NotEnoughEthSent();
-error FundMe__OwnerTransferZeroAddress();
 error FundMe__WithdrawSelfDestructFailed();
-
-contract Ownable {
-    address internal s_owner; // Set in constructor
-
-    // Modifiers
-    modifier onlyOwner() {
-        if (msg.sender != s_owner) revert FundMe__NotOwner();
-        _;
-    }
-
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
-
-    /**
-     * @return true if `msg.sender` is the owner of the contract.
-     */
-    function isOwner() public view returns (bool) {
-        return msg.sender == s_owner;
-    }
-
-    // TODO Make all function comments in this format (and this informative)
-    /**
-     * @dev Allows the current owner to relinquish control of the contract.
-     * @notice Renouncing to ownership will leave the contract without an owner.
-     * It will not be possible to call the functions with the `onlyOwner`
-     * modifier anymore.
-     */
-    function renounceOwnership() public onlyOwner {
-        emit OwnershipTransferred(s_owner, address(0));
-        s_owner = address(0);
-    }
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @notice This public function does not expose the internal function called within.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address newOwner) public onlyOwner {
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function _transferOwnership(address newOwner) internal {
-        if (newOwner == address(0)) revert FundMe__OwnerTransferZeroAddress();
-        emit OwnershipTransferred(s_owner, newOwner);
-        s_owner = newOwner;
-    }
-}
 
 /** @title FundMe
  *  @author EridianAlpha
@@ -81,11 +28,11 @@ contract FundMe is Ownable, ReentrancyGuard {
 
     // State variables
     address[] internal s_funders;
-    address private immutable i_creator; // Set in constructor
+    address internal immutable i_creator; // Set in constructor
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
     uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
-    uint256 private s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
+    uint256 internal s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
 
     /**
      * Functions order:
@@ -100,15 +47,7 @@ contract FundMe is Ownable, ReentrancyGuard {
      */
 
     constructor(address priceFeedAddress) {
-        /**
-         * Initialize the contract owner as the deployer address.
-         * The i_ shows that this is an immutable variable,
-         * as it is only set here inside the constructor and then never changed again.
-         * Not great for a design if you do want to change the owner in future, but shows how immutable variables work.
-         * Would be more useful if it was a creator variable e.g."i_creator" as the creator will never change.
-         */
         i_creator = msg.sender;
-        s_owner = msg.sender;
 
         // Set the address of the priceFeed contract
         s_priceFeed = AggregatorV3Interface(priceFeedAddress);
@@ -195,7 +134,7 @@ contract FundMe is Ownable, ReentrancyGuard {
         // ***********
         // SEND FUNDS
         // ***********
-        (bool callSuccess, ) = s_owner.call{ value: s_balance }("");
+        (bool callSuccess, ) = owner().call{ value: s_balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
     }
 
@@ -209,7 +148,7 @@ contract FundMe is Ownable, ReentrancyGuard {
             // ***********
             // SEND FUNDS
             // ***********
-            (bool callSuccess, ) = s_owner.call{ value: selfdestructBalance }(
+            (bool callSuccess, ) = owner().call{ value: selfdestructBalance }(
                 ""
             );
             if (!callSuccess) revert FundMe__WithdrawSelfDestructFailed();
@@ -255,14 +194,6 @@ contract FundMe is Ownable, ReentrancyGuard {
      */
     function getCreator() public view returns (address) {
         return i_creator;
-    }
-
-    /** @notice Getter function for the contract owner.
-     *  @dev Used instead of the variable directly so the s_ is not used everywhere.
-     *  @return address of the current owner.
-     */
-    function getOwner() public view returns (address) {
-        return s_owner;
     }
 
     /** @notice Getter function for a specific funder address based on their index in the s_funders array.
