@@ -3,6 +3,8 @@ pragma solidity ^0.8.16;
 
 import "../FundMe.sol";
 
+error TestHelper__FundMeFundFailed();
+
 /**
  * This contract is used to test the .call failing in FundMe.sol
  * The test is found in FundMe.test.js:
@@ -16,6 +18,7 @@ import "../FundMe.sol";
  */
 contract TestHelper {
     FundMe fundMeContract;
+    bool private callResponse;
 
     constructor(address priceFeedAddress) {
         fundMeContract = new FundMe(priceFeedAddress);
@@ -30,7 +33,15 @@ contract TestHelper {
         (bool callSuccess, ) = address(fundMeContract).call{ value: sendValue }(
             ""
         );
-        callSuccess;
+        // Must wait for response otherwise the funds won't be sent before the await
+        // in the test is returned, so it continues before the funds are added, causing
+        // the test to fail
+        // I could use a check like this (if it was a real contract):
+        //      if (!callSuccess) revert TestHelper__FundMeFundFailed();
+        // but that adds an if statement that isn't covered in the branch coverage
+        // So for now just store the response as a storage variable so that it waits for the response
+        // TODO Find a better way wait for the response without a conditional if statement
+        callResponse = callSuccess;
     }
 
     function fundMeWithdraw() public payable {

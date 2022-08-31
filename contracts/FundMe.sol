@@ -2,8 +2,7 @@
 pragma solidity ^0.8.16;
 
 // Imports
-// import "./Ownable.sol";
-import "hardhat/console.sol";
+// import "hardhat/console.sol"; // Used for console logging during development
 import "./PriceConverter.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";

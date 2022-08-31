@@ -24,6 +24,8 @@ const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
     networks: {
         hardhat: {
+            //url: No URL as this is the built in Hardhat Network
+            //accounts: Already defined by hardhat
             chainId: 31337,
             gasPrice: 10000000000,
         },
