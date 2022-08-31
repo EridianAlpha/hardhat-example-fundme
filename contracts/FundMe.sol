@@ -17,23 +17,8 @@ error FundMe__NotEnoughEthSent();
 error FundMe__OwnerTransferZeroAddress();
 error FundMe__WithdrawSelfDestructFailed();
 
-/** @title FundMe
- *  @author EridianAlpha
- *  @notice A template contract for funding and withdrawals.
- *  @dev Chainlink is used to implement price feeds.
- */
-contract FundMe is ReentrancyGuard {
-    // Type declarations
-    using PriceConverter for uint256; // Extends uint256 (used from msg.value) to enable direct price conversion
-
-    // State variables
-    address[] internal s_funders;
-    address private immutable i_creator; // Set in constructor
-    address private s_owner; // Set in constructor
-    AggregatorV3Interface internal s_priceFeed; // Set in constructor
-    mapping(address => uint256) internal s_addressToAmountFunded;
-    uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
-    uint256 private s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
+contract Ownable {
+    address internal s_owner; // Set in constructor
 
     // Modifiers
     modifier onlyOwner() {
@@ -45,6 +30,62 @@ contract FundMe is ReentrancyGuard {
         address indexed previousOwner,
         address indexed newOwner
     );
+
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == s_owner;
+    }
+
+    // TODO Make all function comments in this format (and this informative)
+    /**
+     * @dev Allows the current owner to relinquish control of the contract.
+     * @notice Renouncing to ownership will leave the contract without an owner.
+     * It will not be possible to call the functions with the `onlyOwner`
+     * modifier anymore.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(s_owner, address(0));
+        s_owner = address(0);
+    }
+
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @notice This public function does not expose the internal function called within.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function _transferOwnership(address newOwner) internal {
+        if (newOwner == address(0)) revert FundMe__OwnerTransferZeroAddress();
+        emit OwnershipTransferred(s_owner, newOwner);
+        s_owner = newOwner;
+    }
+}
+
+/** @title FundMe
+ *  @author EridianAlpha
+ *  @notice A template contract for funding and withdrawals.
+ *  @dev Chainlink is used to implement price feeds.
+ */
+contract FundMe is Ownable, ReentrancyGuard {
+    // Type declarations
+    using PriceConverter for uint256; // Extends uint256 (used from msg.value) to enable direct price conversion
+
+    // State variables
+    address[] internal s_funders;
+    address private immutable i_creator; // Set in constructor
+    AggregatorV3Interface internal s_priceFeed; // Set in constructor
+    mapping(address => uint256) internal s_addressToAmountFunded;
+    uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
+    uint256 private s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
 
     /**
      * Functions order:
@@ -290,43 +331,5 @@ contract FundMe is ReentrancyGuard {
      */
     function getPriceFeedVersion() public view returns (uint256) {
         return s_priceFeed.version();
-    }
-
-    /**
-     * @return true if `msg.sender` is the owner of the contract.
-     */
-    function isOwner() public view returns (bool) {
-        return msg.sender == s_owner;
-    }
-
-    // TODO Make all function comments in this format (and this informative)
-    /**
-     * @dev Allows the current owner to relinquish control of the contract.
-     * @notice Renouncing to ownership will leave the contract without an owner.
-     * It will not be possible to call the functions with the `onlyOwner`
-     * modifier anymore.
-     */
-    function renounceOwnership() public onlyOwner {
-        emit OwnershipTransferred(s_owner, address(0));
-        s_owner = address(0);
-    }
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @notice This public function does not expose the internal function called within.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address newOwner) public onlyOwner {
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function _transferOwnership(address newOwner) internal {
-        if (newOwner == address(0)) revert FundMe__OwnerTransferZeroAddress();
-        emit OwnershipTransferred(s_owner, newOwner);
-        s_owner = newOwner;
     }
 }
