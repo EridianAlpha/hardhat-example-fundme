@@ -6,7 +6,7 @@ import "hardhat-gas-reporter"
 import "dotenv/config"
 import "solidity-coverage"
 import "hardhat-deploy"
-import "solidity-coverage"
+import "./tasks/block-number"
 import { HardhatUserConfig } from "hardhat/config"
 
 const GOERLI_PRIVATE_KEY =
