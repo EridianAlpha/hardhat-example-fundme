@@ -16,6 +16,7 @@ export const networkConfig: networkConfigInfo = {
     },
     polygon: {
         ethUsdPriceFeed: "0xF9680D99D6C9589e2a93a78A04A279e509205945",
+        blockConfirmations: 6,
     },
 }
 

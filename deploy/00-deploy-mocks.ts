@@ -22,7 +22,7 @@ const deployMocks: DeployFunction = async function (
             args: [DECIMALS, INITIAL_ANSWER],
         })
         log("Mocks deployed!")
-        log("-------------------------------------------------")
+        log("----------------------------------------------------")
     }
 }
 export default deployMocks

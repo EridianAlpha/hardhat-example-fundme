@@ -6,11 +6,9 @@ import verify from "../utils/verify"
 const deployFundMeMatching: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    // @ts-ignore
     const { getNamedAccounts, deployments, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
-    const chainId = network.config.chainId
 
     let ethUsdPriceFeedAddress
     if (developmentChains.includes(network.name)) {
@@ -38,7 +36,7 @@ const deployFundMeMatching: DeployFunction = async function (
         await verify(fundMeMatching.address, args)
     }
 
-    log("-------------------------------------------------")
+    log("----------------------------------------------------")
 }
 
 export default deployFundMeMatching

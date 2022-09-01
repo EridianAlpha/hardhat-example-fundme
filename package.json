@@ -39,7 +39,9 @@
     "coverage": "yarn hardhat coverage",
     "test": "yarn hardhat test",
     "test:local": "yarn hardhat test --network localhost",
-    "test:rinkeby": "yarn hardhat test --network rinkeby",
-    "test:goerli": "yarn hardhat test --network goerli"
+    "test:goerli": "yarn hardhat test --network goerli",
+    "deploy": "yarn hardhat deploy",
+    "deploy:local": "yarn hardhat deploy --network localhost",
+    "deploy:goerli": "yarn hardhat deploy --network goerli"
   }
 }
