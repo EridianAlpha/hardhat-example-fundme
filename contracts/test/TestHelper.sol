@@ -18,7 +18,7 @@ error TestHelper__FundMeFundFailed();
  */
 contract TestHelper {
     FundMe fundMeContract;
-    bool private callResponse;
+    bool public callResponse;
 
     constructor(address priceFeedAddress) {
         fundMeContract = new FundMe(priceFeedAddress);
