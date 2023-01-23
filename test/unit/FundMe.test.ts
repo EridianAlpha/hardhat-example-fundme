@@ -115,8 +115,8 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   )
 
                   // If the withdraw fails, the s_funders address array should not be reset
-                  // (This test isn't really needed, it's just showing that revert works by undoing all changes
-                  // made to the state during the transaction)
+                  // (This test isn't really needed, it's just showing that revert works by
+                  // undoing all changes made to the state during the transaction)
                   assert.equal(
                       await testHelper.fundMeGetFunderAddress(0),
                       testHelper.address

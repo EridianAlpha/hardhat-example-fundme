@@ -30,7 +30,7 @@ contract FundMe is Ownable, ReentrancyGuard {
     address internal immutable i_creator; // Set in constructor
     AggregatorV3Interface internal s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
-    uint256 public constant MINIMUM_USD = 100 * 10**18; // Constant, never changes ($100)
+    uint256 public constant MINIMUM_USD = 100 * 10 ** 18; // Constant, never changes ($100)
     uint256 internal s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
 
     /**
@@ -200,11 +200,9 @@ contract FundMe is Ownable, ReentrancyGuard {
      *  @param funderAddress The address of the funder to be found in s_funders array.
      *  @return uint256 index position of funderAddress.
      */
-    function getFunderIndex(address funderAddress)
-        public
-        view
-        returns (uint256)
-    {
+    function getFunderIndex(
+        address funderAddress
+    ) public view returns (uint256) {
         address[] memory funders = s_funders;
         uint256 index;
 
@@ -227,11 +225,9 @@ contract FundMe is Ownable, ReentrancyGuard {
     /** @notice Getter function to convert an address to the total amount funded.
      *  @dev Public function to allow anyone to easily check the balance funded by any address.
      */
-    function getAddressToAmountFunded(address funder)
-        public
-        view
-        returns (uint256)
-    {
+    function getAddressToAmountFunded(
+        address funder
+    ) public view returns (uint256) {
         return s_addressToAmountFunded[funder];
     }
 
