@@ -6,11 +6,9 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 // This is a library and not an abstract as all of the functions are fully implemented
 library PriceConverter {
     // Must be internal as it is a library function
-    function getPrice(AggregatorV3Interface priceFeed)
-        internal
-        view
-        returns (uint256)
-    {
+    function getPrice(
+        AggregatorV3Interface priceFeed
+    ) internal view returns (uint256) {
         // (
         //     uint80 roundID,
         //     int256 price,
@@ -27,7 +25,7 @@ library PriceConverter {
         AggregatorV3Interface priceFeed
     ) internal view returns (uint256) {
         uint256 ethPrice = getPrice(priceFeed);
-        uint256 ethAmountInUsd = (ethPrice * ethAmount) / (10**18);
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / (10 ** 18);
         return ethAmountInUsd; // ETH/USD conversion rate, after adjusting the extra 0s.
     }
 }

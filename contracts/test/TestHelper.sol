@@ -52,11 +52,9 @@ contract TestHelper {
         fundMeContract.refund();
     }
 
-    function fundMeGetFunderAddress(uint256 funderIndex)
-        public
-        view
-        returns (address)
-    {
+    function fundMeGetFunderAddress(
+        uint256 funderIndex
+    ) public view returns (address) {
         return (fundMeContract.getFunderAddress(funderIndex));
     }
 }
