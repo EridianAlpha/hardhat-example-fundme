@@ -56,13 +56,13 @@ contract FundMe is Ownable, ReentrancyGuard {
      * Explainer from: https://solidity-by-example.org/fallback
      * Ether is sent to contract
      *      is msg.data empty?
-     *          /   \
-     *         yes  no
-     *         /     \
+     *           /    \
+     *         yes    no
+     *         /       \
      *    receive()?  fallback()
-     *     /   \
-     *   yes   no
-     *  /        \
+     *      /     \
+     *    yes     no
+     *    /        \
      * receive()  fallback()
      */
     receive() external payable {
