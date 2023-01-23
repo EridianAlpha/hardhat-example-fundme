@@ -2,7 +2,7 @@
 pragma solidity ^0.8.16;
 
 // Imports
-// import "hardhat/console.sol"; // Used for console logging during development
+import "hardhat/console.sol"; // Used for console logging during development // console.log("HERE1");
 import "./PriceConverter.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -152,6 +152,7 @@ contract FundMe is Ownable, ReentrancyGuard {
             );
             if (!callSuccess) revert FundMe__WithdrawSelfDestructFailed();
         } else {
+            console.log("HERE1");
             revert FundMe__WithdrawSelfDestructFailed();
         }
     }

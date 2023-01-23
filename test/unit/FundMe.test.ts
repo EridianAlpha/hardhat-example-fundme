@@ -202,6 +202,13 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                           .toString()
                   )
 
+                  // Check only owner can withdraw selfdestruct funds
+                  const attacker = accounts[1]
+                  const attackerConnectedContract = fundMe.connect(attacker) // attacker is an account object, so we're connecting the whole account
+                  await expect(
+                      attackerConnectedContract.withdrawSelfdestructFunds()
+                  ).to.be.revertedWith("Ownable: caller is not the owner")
+
                   // Withdraw selfdestruct funds
                   await fundMe.withdrawSelfdestructFunds()
 
