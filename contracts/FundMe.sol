@@ -158,7 +158,7 @@ contract FundMe is Ownable, ReentrancyGuard {
 
     /** @notice Function for refunding deposits to funders on request.
      *  @dev Does not require nonReentrant modifier as s_addressToAmountFunded
-     * is reset, but retained here for completeness of this template.
+     * is reset before sending funds, but retained here for completeness of this template.
      */
     function refund() external payable nonReentrant {
         uint256 refundAmount = s_addressToAmountFunded[msg.sender];
@@ -169,6 +169,9 @@ contract FundMe is Ownable, ReentrancyGuard {
         // Resetting the funded amount before the refund is
         // sent stops reentrancy attacks on this function
         s_addressToAmountFunded[msg.sender] = 0;
+
+        // Reduce s_balance by the refund amount
+        s_balance -= refundAmount;
 
         // Remove specific funder from the s_funders array
         for (uint256 i = 0; i < funders.length; i++) {

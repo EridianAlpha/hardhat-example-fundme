@@ -276,6 +276,10 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const startingFunderBalance =
                       await fundMe.provider.getBalance(funder)
 
+                  const s_balanceBefore = await fundMe.getBalance()
+                  const startingFunderAmount =
+                      await fundMe.getAddressToAmountFunded(funder)
+
                   // Act
                   const transactionResponse = await fundMe.refund()
                   const transactionReceipt = await transactionResponse.wait(1)
@@ -288,6 +292,8 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const endingFunderBalance = await fundMe.provider.getBalance(
                       funder
                   )
+
+                  const s_balanceAfter = await fundMe.getBalance()
 
                   // Assert
 
@@ -308,6 +314,12 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                           await fundMe.getAddressToAmountFunded(funder)
                       ).toString(),
                       BigNumber.from("0").toString()
+                  )
+
+                  // Check s_balance has been reduced by the refund amount
+                  assert.equal(
+                      s_balanceBefore.sub(startingFunderAmount).toString(),
+                      s_balanceAfter.toString()
                   )
 
                   // Check funder has been removed from the s_funders index
