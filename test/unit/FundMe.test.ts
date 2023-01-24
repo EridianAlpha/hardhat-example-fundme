@@ -20,7 +20,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
               accounts = await ethers.getSigners()
               deployer = accounts[0]
               await deployments.fixture(["fundMe", "mocks"])
-              fundMe = await ethers.getContract("FundMe", deployer)
+              fundMe = await ethers.getContract("FundMe", deployer) // Gets most recently deployed contract
               mockV3Aggregator = await ethers.getContract(
                   "MockV3Aggregator",
                   deployer
