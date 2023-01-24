@@ -7,5 +7,7 @@
         "strict": true,
         "skipLibCheck": true,
         "outDir": "dist"
-    }
+    },
+    "include": ["./scripts"],
+    "files": ["./hardhat.config.ts"]
 }
