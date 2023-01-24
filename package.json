@@ -31,7 +31,6 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "node": "yarn hardhat node",
     "clean": "yarn hardhat clean",
     "compile": "yarn hardhat compile",
     "format": "yarn prettier --write .",
