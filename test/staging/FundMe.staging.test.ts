@@ -4,7 +4,7 @@ import { developmentChains } from "../../helper-hardhat-config"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { FundMe } from "../../typechain-types"
 
-developmentChains.includes(network.name)
+developmentChains.includes(network.name) // Only run these tests on development chains
     ? describe.skip
     : describe("FundMe Staging Tests", async function () {
           let fundMe: FundMe

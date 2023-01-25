@@ -5,7 +5,7 @@ import { network, deployments, ethers } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
 import { FundMe, MockV3Aggregator } from "../../typechain-types"
 
-!developmentChains.includes(network.name)
+!developmentChains.includes(network.name) // Only run tests if not on a development chain
     ? describe.skip
     : describe("FundMe", async function () {
           let fundMe: FundMe
