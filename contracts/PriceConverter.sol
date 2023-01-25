@@ -17,7 +17,7 @@ library PriceConverter {
         //     uint80 answeredInRound
         // )
         (, int256 price, , , ) = priceFeed.latestRoundData();
-        return uint256(price * 10000000000); // ETH/USD rate in 18 digit
+        return uint256(price * 10000000000); // ETH/USD rate in 18 digit and decimals returned is 8 (so 10+8 zeros)
     }
 
     function getConversionRate(
