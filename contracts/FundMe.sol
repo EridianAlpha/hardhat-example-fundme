@@ -28,7 +28,7 @@ contract FundMe is Ownable, ReentrancyGuard {
     // State variables
     address[] internal s_funders;
     address internal immutable i_creator; // Set in constructor
-    AggregatorV3Interface internal s_priceFeed; // Set in constructor
+    AggregatorV3Interface internal immutable s_priceFeed; // Set in constructor
     mapping(address => uint256) internal s_addressToAmountFunded;
     uint256 public constant MINIMUM_USD = 100 * 10 ** 18; // Constant, never changes ($100)
     uint256 internal s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
