@@ -39,7 +39,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
               it("Fails if you don't send enough ETH", async function () {
                   await expect(
                       fundMe.fund({ value: ethers.utils.parseEther("0.001") })
-                  ).to.be.revertedWith("FundMe__NotEnoughEthSent")
+                  ).to.be.rejectedWith("FundMe__NotEnoughEthSent")
               })
               it("Updates the amount funded data structure", async function () {
                   await fundMe.fund({ value: sendValue })
@@ -80,11 +80,11 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const attackerConnectedContract = fundMe.connect(attacker) // attacker is an account object, so we're connecting the whole account
                   await expect(
                       attackerConnectedContract.withdraw()
-                  ).to.be.revertedWith("Ownable: caller is not the owner")
+                  ).to.be.rejectedWith("Ownable: caller is not the owner")
               })
 
               it("Withdraw call with zero balance fails", async function () {
-                  await expect(fundMe.withdraw()).to.be.revertedWith(
+                  await expect(fundMe.withdraw()).to.be.rejectedWith(
                       "FundMe__WithdrawNoFunds"
                   )
               })
@@ -110,7 +110,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   // so that this test passes the WithdrawEmpty test
                   await testHelper.fundMeFund(sendValue)
 
-                  await expect(testHelper.fundMeWithdraw()).to.be.revertedWith(
+                  await expect(testHelper.fundMeWithdraw()).to.be.rejectedWith(
                       "FundMe__WithdrawFailed"
                   )
 
@@ -177,7 +177,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   // Check funds can't be withdrawn before the attack
                   await expect(
                       fundMe.withdrawSelfdestructFunds()
-                  ).to.be.revertedWith("FundMe__WithdrawSelfDestructFailed")
+                  ).to.be.rejectedWith("FundMe__WithdrawSelfDestructFailed")
 
                   // Deploy SelfDestructAttack contract and pass fundMe.address to constructor
                   const selfDestructAttackFactory =
@@ -207,7 +207,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   const attackerConnectedContract = fundMe.connect(attacker) // attacker is an account object, so we're connecting the whole account
                   await expect(
                       attackerConnectedContract.withdrawSelfdestructFunds()
-                  ).to.be.revertedWith("Ownable: caller is not the owner")
+                  ).to.be.rejectedWith("Ownable: caller is not the owner")
 
                   // Withdraw selfdestruct funds
                   await fundMe.withdrawSelfdestructFunds()
@@ -246,7 +246,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
 
                   await expect(
                       selfDestructHelper.fundMeSelfDestructWithdraw()
-                  ).to.be.revertedWith("FundMe__WithdrawSelfDestructFailed")
+                  ).to.be.rejectedWith("FundMe__WithdrawSelfDestructFailed")
               })
           })
 
@@ -325,7 +325,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   // Check funder has been removed from the s_funders index
                   await expect(
                       fundMe.getFunderIndex(funder)
-                  ).to.be.revertedWith("FundMe__IndexNotFound")
+                  ).to.be.rejectedWith("FundMe__IndexNotFound")
               })
 
               it("Refund call with zero balance fails", async function () {
@@ -334,7 +334,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
 
                   await expect(
                       noneFunderConnectedContract.refund()
-                  ).to.be.revertedWith("FundMe__RefundNoFunds")
+                  ).to.be.rejectedWith("FundMe__RefundNoFunds")
               })
 
               it("Refund .call failure throws error", async function () {
@@ -358,7 +358,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                   // so that this test passes the RefundNoFunds test
                   await testHelper.fundMeFund(sendValue)
 
-                  await expect(testHelper.fundMeRefund()).to.be.revertedWith(
+                  await expect(testHelper.fundMeRefund()).to.be.rejectedWith(
                       "FundMe__RefundFailed"
                   )
               })
@@ -383,7 +383,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                       reentrancyAttack.attack({
                           value: ethers.utils.parseEther("1"),
                       })
-                  ).to.be.revertedWith("FundMe__RefundFailed")
+                  ).to.be.rejectedWith("FundMe__RefundFailed")
               })
           })
 
@@ -430,7 +430,7 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
                       "0x0000000000000000000000000000000000000000"
                   await expect(
                       fundMe.transferOwnership(addressZero)
-                  ).to.be.revertedWith("Ownable: new owner is the zero address")
+                  ).to.be.rejectedWith("Ownable: new owner is the zero address")
               })
               it("Transfer ownership success", async function () {
                   const newOwner = accounts[1]
