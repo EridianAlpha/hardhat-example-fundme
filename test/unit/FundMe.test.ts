@@ -73,6 +73,22 @@ import { FundMe, MockV3Aggregator } from "../../typechain-types"
           })
 
           describe("withdraw", async function () {
+              it("Allows owner to withdraw once", async function () {
+                  await fundMe.fund({ value: sendValue })
+                  await fundMe.withdraw()
+
+                  assert(await fundMe.provider.getBalance(fundMe.address), "0")
+              })
+
+              it("Allows the owner to withdraw multiple times", async function () {
+                  await fundMe.fund({ value: sendValue })
+                  await fundMe.withdraw()
+                  await fundMe.fund({ value: sendValue })
+                  await fundMe.withdraw()
+
+                  assert(await fundMe.provider.getBalance(fundMe.address), "0")
+              })
+
               it("Only allows the owner to withdraw", async function () {
                   await fundMe.fund({ value: sendValue })
 

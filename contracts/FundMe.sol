@@ -135,6 +135,9 @@ contract FundMe is Ownable, ReentrancyGuard {
         // ***********
         (bool callSuccess, ) = owner().call{ value: s_balance }("");
         if (!callSuccess) revert FundMe__WithdrawFailed();
+
+        // Reset the s_balance variable to 0 otherwise future full withdrawals will fail
+        s_balance = 0;
     }
 
     /** @notice Function for allowing owner to withdraw any selfdestruct funds from the contract.
@@ -176,7 +179,7 @@ contract FundMe is Ownable, ReentrancyGuard {
         // Remove specific funder from the s_funders array
         for (uint256 i = 0; i < funders.length; i++) {
             if (funders[i] == msg.sender) {
-                // Move the last element into the place to delete
+                // Move the element into the last place to delete
                 s_funders[i] = s_funders[s_funders.length - 1];
                 // Remove the last element
                 s_funders.pop();
