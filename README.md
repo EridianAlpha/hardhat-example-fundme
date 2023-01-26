@@ -1,4 +1,4 @@
-Hardhat - Example - FundMe
+# Hardhat - Example - FundMe
 
 This repo is a template for starting a new Hardhat project.
 <br/>
