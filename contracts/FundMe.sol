@@ -34,6 +34,18 @@ contract FundMe is Ownable, ReentrancyGuard {
     uint256 internal s_balance; // Stores the funded balance to avoid selfdestruct attacks using address(this).balance
 
     /**
+     *  The s_balance variable isn't needed for this contract
+     *  as it is designed to withdraw 100% of the funds in the contract anyway.
+     *  It actually creates a problem if someone does perform a selfdestruct
+     *  attack, since those funds are then not counted, and get stuck.
+     *  So use another function withdrawSelfdestructFunds() to completely
+     *  drain the contract. This is better as it allows the owner to fix the
+     *  problem, without being accused of draining the main funds/prize.
+     *  It is an example to show how to avoid selfdestruct attacks:
+     *  https://solidity-by-example.org/hacks/self-destruct/
+     */
+
+    /**
      * Functions order:
      * - constructor
      * - receive
@@ -83,19 +95,7 @@ contract FundMe is Ownable, ReentrancyGuard {
         if (msg.value.getConversionRate(s_priceFeed) <= MINIMUM_USD)
             revert FundMe__NotEnoughEthSent();
 
-        /**
-         *  The s_balance variable isn't needed for this function
-         *  as it withdraws 100% of the funds in the contract anyway.
-         *  It actually creates a problem if someone does perform a selfdestruct
-         *  attack, since those funds are then not counted, and get stuck.
-         *  So use another function withdrawSelfdestructFunds() to completely
-         *  drain the contract. This is better as it allows the owner to fix the
-         *  problem, without being accused of draining the main funds/prize.
-         *  It is an example to show how to avoid selfdestruct attacks:
-         *  https://solidity-by-example.org/hacks/self-destruct/
-         */
         s_balance += msg.value;
-
         s_addressToAmountFunded[msg.sender] += msg.value;
 
         // If funder does not already exist, add to s_funders array
