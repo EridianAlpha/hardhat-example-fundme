@@ -1,6 +1,6 @@
 # Hardhat - Example - FundMe
 
-This repo is a template for starting a new Hardhat project.
+This repo is forked from the template HardHat example project.
 <br/>
 <br/>
 
