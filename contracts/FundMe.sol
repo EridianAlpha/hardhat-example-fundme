@@ -130,14 +130,19 @@ contract FundMe is Ownable, ReentrancyGuard {
         // Reset the s_funders array to an empty array
         s_funders = new address[](0);
 
-        // ***********
-        // SEND FUNDS
-        // ***********
-        (bool callSuccess, ) = owner().call{ value: s_balance }("");
-        if (!callSuccess) revert FundMe__WithdrawFailed();
+        // Create a temporary variable to store the s_balance value as a form of reentrancy protection
+        // as it stores the s_balance value which can then be reset to 0 before the .call is made
+        // so any reentrancy attack will fail as s_balance will be 0
+        uint256 withdrawAmount = s_balance;
 
         // Reset the s_balance variable to 0 otherwise future full withdrawals will fail
         s_balance = 0;
+
+        // ***********
+        // SEND FUNDS
+        // ***********
+        (bool callSuccess, ) = owner().call{ value: withdrawAmount }("");
+        if (!callSuccess) revert FundMe__WithdrawFailed();
     }
 
     /** @notice Function for allowing owner to withdraw any selfdestruct funds from the contract.
